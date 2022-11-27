@@ -16,9 +16,13 @@ pub fn StaticArrayList(comptime T: type, comptime Size: usize) type {
         }
 
         pub fn clone(self: *Self) Self {
-            var cloned = Self{};
-            cloned.appendSlice(self.getItems());
-            return cloned;
+            return fromSlice(self.getItems());
+        }
+
+        pub fn fromSlice(slice: []const T) Self {
+            var ret = Self{};
+            ret.appendSlice(slice);
+            return ret;
         }
 
         pub fn insert(self: *Self, n: usize, item: T) void {

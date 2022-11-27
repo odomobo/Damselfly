@@ -3,17 +3,17 @@ const df = @import("../damselfly.zig");
 
 pub const Score = packed struct(u16) {
     const Self = @This();
-    pub const Type = enum(u1) {
+    pub const ScoreType = enum(u1) {
         Mate,
         Normal,
     };
 
-    type: Type,
+    scoreType: ScoreType,
     val: i15,
 
     pub fn initMating(gamePly: usize) Self {
         return Self {
-            .type = Type.Mate,
+            .scoreType = ScoreType.Mate,
             .val = std.math.maxInt(i15) - @intCast(i15, gamePly),
         };
     }
@@ -24,14 +24,14 @@ pub const Score = packed struct(u16) {
 
     pub fn initScore(score: isize) Self {
         return Self {
-            .type = Type.Normal,
+            .scoreType = ScoreType.Normal,
             .val = @intCast(i15, score),
         };
     }
 
     pub fn negate(self: Self) Self {
         return Self {
-            .type = self.type,
+            .scoreType = self.ScoreType,
             .val = -self.val,
         };
     }

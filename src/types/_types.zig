@@ -1,9 +1,11 @@
 
 pub const Color = @import("Color.zig").Color;
 pub const PieceType = @import("PieceType.zig").PieceType;
-pub const Piece = @import("Piece.zig");
-usingnamespace @import("score.zig");
+pub const Piece = @import("Piece.zig"); // TODO: just use normal struct?
+pub const Score = @import("Score.zig").Score;
 
+pub const Offset = @import("Offset.zig").Offset;
+pub const Bitboard = @import("Bitboard.zig").Bitboard;
 
 // allows `zig build test` to work
 test {

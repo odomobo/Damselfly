@@ -1,4 +1,5 @@
 pub const types = @import("types/_types.zig");
+pub const tables = @import("tables/_tables.zig");
 pub const bits = @import("bits.zig");
 pub const StaticArrayList = @import("static_array_list.zig").StaticArrayList;
 
