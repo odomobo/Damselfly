@@ -85,7 +85,10 @@ const maxAllowedFromOffset = Offset.fromXY(maxAllowedFromCardinalDistance, maxAl
 const allowedFromTableSize = maxAllowedFromOffset.val - minAllowedFromOffset.val + 1;
 
 fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
-    @setEvalBranchQuota(20000);
+    // This is run at compile time.
+    // Just naively, 7*7 different offsets, calculated on 8*8 bits each, is 3136.
+    // We need more than this because of branch overhead in setXY, which has like 6 branches?
+    @setEvalBranchQuota(7*7 * 8*8 * 10);
     var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{Bitboard{.val = 0}} ** allowedFromTableSize;
 
     var offsY: isize = -maxAllowedFromCardinalDistance;
@@ -121,7 +124,7 @@ fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
         }
     }
     
-    return ret;
+    return comptime ret;
 }
 
 test "Offset.fromStr" {
