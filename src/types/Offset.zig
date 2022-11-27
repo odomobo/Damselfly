@@ -2,6 +2,7 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
+const Bitboard = df.types.Bitboard;
 
 const Point = struct {
     x: isize,
@@ -71,17 +72,57 @@ pub const Offset = struct {
         return Self{ .val = x + (y*8)};
     }
 
-    pub fn allowedFrom(self: Self, index: isize) bool {
-        // TODO: look up into allowedFromTable, which is an array of Bitboards, which
-        // store the info about whether a source square is allowed to use that offset
-        _ = self;
-        _ = index;
-        unreachable;
+    pub fn getAllowedFromBb(self: Self) Bitboard {
+        var index = self.val - minAllowedFromOffset.val;
+        return allowedFromTable[@intCast(usize, index)];
     }
 };
 
-// TODO: create this
-// const allowedFromTable
+const allowedFromTable: [allowedFromTableSize]Bitboard = CreateAllowedFromTable();
+const maxAllowedFromCardinalDistance: isize = 2;
+const minAllowedFromOffset = Offset.fromXY(-maxAllowedFromCardinalDistance, -maxAllowedFromCardinalDistance);
+const maxAllowedFromOffset = Offset.fromXY(maxAllowedFromCardinalDistance, maxAllowedFromCardinalDistance);
+const allowedFromTableSize = maxAllowedFromOffset.val - minAllowedFromOffset.val + 1;
+
+fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
+    @setEvalBranchQuota(20000);
+    var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{Bitboard{.val = 0}} ** allowedFromTableSize;
+
+    var offsY: isize = -maxAllowedFromCardinalDistance;
+    while(offsY <= maxAllowedFromCardinalDistance) : (offsY += 1)
+    {
+        var offsX: isize = -maxAllowedFromCardinalDistance;
+        while(offsX <= maxAllowedFromCardinalDistance) : (offsX += 1)
+        {
+            var curOffset = Offset.fromXY(offsX, offsY);
+            var curBitboard = Bitboard{.val = 0};
+
+            var bbY: isize = 0;
+            while(bbY < 8) : (bbY += 1)
+            {
+                var bbX: isize = 0;
+                while(bbX < 8) : (bbX += 1)
+                {
+                    // if can safely jump by offset from current position, then it's safe and we set the bit
+                    if (
+                        bbX + offsX >= 0 and
+                        bbX + offsX < 8 and
+                        bbY + offsY >= 0 and
+                        bbY + offsY < 8
+                    )
+                    {
+                        curBitboard.setXY(bbX, bbY);
+                    }
+                }
+            }
+
+            var index = curOffset.val - minAllowedFromOffset.val;
+            ret[@intCast(usize, index)] = curBitboard;
+        }
+    }
+    
+    return ret;
+}
 
 test "Offset.fromStr" {
     const n1 = Offset.fromStr(
@@ -95,4 +136,47 @@ test "Offset.fromStr" {
 test "Offset.fromXY" {
     const n1 = Offset.fromXY(1, -2);
     try std.testing.expect(n1.val == -15);
+}
+
+test "Offset.getAllowedFromBb" {
+    const r1 = Offset.fromStr(
+        " 2 / " ++
+        " 1   "
+    );
+
+    const r1AllowedBb = r1.getAllowedFromBb();
+
+    const r1ExpectedBb = df.types.Bitboard.fromStr(
+        " . . . . . . . . / " ++
+        " O O O O O O O O / " ++
+        " O O O O O O O O / " ++
+        " O O O O O O O O / " ++
+        " O O O O O O O O / " ++
+        " O O O O O O O O / " ++
+        " O O O O O O O O / " ++
+        " O O O O O O O O   "
+    );
+
+    try std.testing.expectEqual(r1ExpectedBb.val, r1AllowedBb.val);
+
+    const n1 = Offset.fromStr(
+        " 1 . / " ++
+        " . . / " ++
+        " . 2   "
+    );
+
+    const n1AllowedBb = n1.getAllowedFromBb();
+
+    const n1ExpectedBb = df.types.Bitboard.fromStr(
+        " O O O O O O O . / " ++
+        " O O O O O O O . / " ++
+        " O O O O O O O . / " ++
+        " O O O O O O O . / " ++
+        " O O O O O O O . / " ++
+        " O O O O O O O . / " ++
+        " . . . . . . . . / " ++
+        " . . . . . . . .   "
+    );
+
+    try std.testing.expectEqual(n1ExpectedBb.val, n1AllowedBb.val);
 }

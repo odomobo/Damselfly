@@ -1,6 +1,8 @@
 const std = @import("std");
 const df = @import("damselfly.zig");
 
+const assert = std.debug.assert;
+
 pub fn getLsb(value: u64) isize
 {
     return @ctz(value);
@@ -21,6 +23,23 @@ pub fn popLsb(value: *u64) isize
 pub fn popCount(value: u64) isize
 {
     return @popCount(value);
+}
+
+pub fn bitToIndex(value: u64) isize
+{
+    assert(value & (value-1) == 0);
+    return @ctz(value);
+}
+
+pub fn indexToBit(index: isize) u64
+{
+    assert(index >= 0);
+    assert(index < 64);
+    return @shlExact(@as(u64, 1), @intCast(u6, index));
+}
+
+pub fn xyToIndex(x: isize, y: isize) isize {
+    return x + (y*8);
 }
 
 pub fn parallelBitDeposit(value: u64, mask: u64) u64

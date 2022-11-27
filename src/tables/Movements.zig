@@ -1,15 +1,19 @@
 const std = @import("std");
 const df = @import("../damselfly.zig");
 
+const assert = std.debug.assert;
 const Offset = df.types.Offset;
 const StaticArrayList = df.StaticArrayList;
 
 pub const Movements = struct {
     pub fn byPiece(piece: df.types.Piece) []Offset
     {
+        assert(piece.getPieceType() != df.types.PieceType.Pawn);
+        assert(piece.getPieceType() != df.types.PieceType.None);
+
         return MovementsTable[@enumToInt(piece)].getItems();
     }
-}
+};
 
 const OffsetList = StaticArrayList(Offset, 8);
 const o = Offset.fromStr;

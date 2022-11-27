@@ -1,5 +1,7 @@
 const std = @import("std");
+const df = @import("../damselfly.zig");
 
+const bits = df.bits;
 const assert = std.debug.assert;
 
 const Point = struct {
@@ -13,7 +15,7 @@ pub const Bitboard = struct {
     val: u64,
 
     pub fn fromStr(comptime str: []const u8) Self {
-        var bitboard: u64 = 0;
+        var ret = Self{ .val = 0 };
 
         var next = Point{ .x = 0, .y = 7 };
         
@@ -35,7 +37,7 @@ pub const Bitboard = struct {
             {
                 assert(next.x < 8);
                 assert(next.y >= 0);
-                bitboard |= @as(u64, 1) << @intCast(u6, next.x + (next.y * 8));
+                ret.setXY(next.x, next.y);
                 next.x += 1;
                 continue;
             }
@@ -55,7 +57,16 @@ pub const Bitboard = struct {
         assert(next.x == 8); // after reading the last square, it still iterates to the next
         assert(next.y == 0);
 
-        return comptime Self{ .val = bitboard };
+        return comptime ret;
+    }
+
+    pub fn setXY(self: *Self, x: isize, y: isize) void {
+        assert(x >= 0);
+        assert(x < 8);
+        assert(y >= 0);
+        assert(y < 8);
+        var bit = bits.indexToBit(bits.xyToIndex(x, y));
+        self.val |= bit;
     }
 };
 
