@@ -11,10 +11,28 @@ pub const BackingType = u8;
 
 pub const None = Self.init(Color.White, PieceType.None);
 
-data: BackingType,
+data: BackingType, // TODO: use packed struct instead of this
 
 pub fn init(color: Color, pieceType: PieceType) Self {
     return Self{ .data = @enumToInt(color) | @enumToInt(pieceType)};
+}
+
+pub fn maybeFromChar(c: u8) ?Self {
+    return switch (c) {
+        'P' => Self.init(Color.White, PieceType.Pawn),
+        'N' => Self.init(Color.White, PieceType.Knight),
+        'B' => Self.init(Color.White, PieceType.Bishop),
+        'R' => Self.init(Color.White, PieceType.Rook),
+        'Q' => Self.init(Color.White, PieceType.Queen),
+        'K' => Self.init(Color.White, PieceType.King),
+        'p' => Self.init(Color.Black, PieceType.Pawn),
+        'n' => Self.init(Color.Black, PieceType.Knight),
+        'b' => Self.init(Color.Black, PieceType.Bishop),
+        'r' => Self.init(Color.Black, PieceType.Rook),
+        'q' => Self.init(Color.Black, PieceType.Queen),
+        'k' => Self.init(Color.Black, PieceType.King),
+        else => null,
+    };
 }
 
 pub fn getColor(self: Self) Color {
@@ -63,7 +81,7 @@ pub fn format(self: Self, comptime fmt: []const u8, _: std.fmt.FormatOptions, wr
                 PieceType.Rook => try writer.print("r", .{}),
                 PieceType.Queen => try writer.print("q", .{}),
                 PieceType.King => try writer.print("k", .{}),
-                PieceType.None => try writer.print(".", .{}),
+                PieceType.None => try writer.print("!", .{}),
             }
         }
     }

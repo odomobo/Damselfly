@@ -12,6 +12,8 @@ const Point = struct {
 pub const Bitboard = struct {
     const Self = @This();
 
+    pub const empty = Self{.val = 0};
+
     val: u64,
 
     pub fn fromStr(comptime str: []const u8) Self {
@@ -61,12 +63,48 @@ pub const Bitboard = struct {
     }
 
     pub fn setXY(self: *Self, x: isize, y: isize) void {
-        assert(x >= 0);
-        assert(x < 8);
-        assert(y >= 0);
-        assert(y < 8);
-        var bit = bits.indexToBit(bits.xyToIndex(x, y));
+        self.setIndex(bits.xyToIndex(x, y));
+    }
+
+    pub fn setIndex(self: *Self, index: isize) void {
+        var bit = bits.indexToBit(index);
         self.val |= bit;
+    }
+
+    pub fn clearXY(self: *Self, x: isize, y: isize) void {
+        self.clearIndex(bits.xyToIndex(x, y));
+    }
+
+    pub fn clearIndex(self: *Self, index: isize) void {
+        var bit = bits.indexToBit(index);
+        self.val &= ~bit;
+    }
+
+    pub fn hasBitXY(self: Self, x: isize, y: isize) bool {
+        return self.hasBitIndex(bits.xyToIndex(x, y));
+    }
+
+    pub fn hasBitIndex(self: Self, index: isize) bool {
+        var bit = bits.indexToBit(index);
+        return (self.val & bit) != 0;
+    }
+
+    pub fn format(self: Self, comptime _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
+    {
+        var y: isize = 7;
+        while(y >= 0) : (y -= 1)
+        {
+            var x: isize = 0;
+            while(x < 8) : (x += 1)
+            {
+                if (self.hasBitXY(x, y)) {
+                    try writer.print("O ", .{});
+                } else {
+                    try writer.print(". ", .{});
+                }
+            }
+            try writer.print("\n", .{});
+        }
     }
 };
 

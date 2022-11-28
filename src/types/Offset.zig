@@ -89,7 +89,7 @@ fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
     // Just naively, 7*7 different offsets, calculated on 8*8 bits each, is 3136.
     // We need more than this because of branch overhead in setXY, which has like 6 branches?
     @setEvalBranchQuota(7*7 * 8*8 * 10);
-    var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{Bitboard{.val = 0}} ** allowedFromTableSize;
+    var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{Bitboard.empty} ** allowedFromTableSize;
 
     var offsY: isize = -maxAllowedFromCardinalDistance;
     while(offsY <= maxAllowedFromCardinalDistance) : (offsY += 1)
@@ -98,7 +98,7 @@ fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
         while(offsX <= maxAllowedFromCardinalDistance) : (offsX += 1)
         {
             var curOffset = Offset.fromXY(offsX, offsY);
-            var curBitboard = Bitboard{.val = 0};
+            var curBitboard = Bitboard.empty;
 
             var bbY: isize = 0;
             while(bbY < 8) : (bbY += 1)

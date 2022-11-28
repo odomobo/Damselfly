@@ -24,10 +24,33 @@ pub fn build(b: *std.build.Builder) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
-    const exe_tests = b.addTest("src/main.zig");
+    const exe_tests = b.addTest("src/damselfly.zig");
     exe_tests.setTarget(target);
     exe_tests.setBuildMode(mode);
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
+
+    register_xxx(b, target, mode);
+}
+
+fn register_xxx(b: *std.build.Builder, target: std.zig.CrossTarget, mode: std.builtin.Mode) void {
+    const exe = b.addExecutable("xxx", "test/xxx.zig");
+    exe.setTarget(target);
+    exe.setBuildMode(mode);
+    exe.addPackagePath("damselfly", "src/damselfly.zig");
+
+    const install_exe = b.addInstallArtifact(exe);
+
+    const install_step = b.step("build-xxx", "Build adhoc test application");
+    install_step.dependOn(&install_exe.step);
+
+    const run_cmd = exe.run();
+    run_cmd.step.dependOn(&install_exe.step);
+    if (b.args) |args| {
+        run_cmd.addArgs(args);
+    }
+
+    const run_step = b.step("xxx", "Run adhoc test application");
+    run_step.dependOn(&run_cmd.step);
 }

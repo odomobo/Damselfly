@@ -39,7 +39,26 @@ pub fn indexToBit(index: isize) u64
 }
 
 pub fn xyToIndex(x: isize, y: isize) isize {
+    assert(x >= 0);
+    assert(x < 8);
+    assert(y >= 0);
+    assert(y < 8);
     return x + (y*8);
+}
+
+pub const IndexToXYRet = struct {
+    x: isize,
+    y: isize,
+};
+
+pub fn indexToXY(index: isize) IndexToXYRet {
+    assert(index >= 0);
+    assert(index < 64);
+    
+    return IndexToXYRet{
+        .x = index % 8,
+        .y = @divFloor(index, 8),
+    };
 }
 
 pub fn parallelBitDeposit(value: u64, mask: u64) u64
