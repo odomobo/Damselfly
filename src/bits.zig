@@ -1,6 +1,7 @@
 const std = @import("std");
 const df = @import("damselfly.zig");
 
+const Position = df.types.Position;
 const assert = std.debug.assert;
 
 pub fn getLsb(value: u64) isize
@@ -44,6 +45,29 @@ pub fn xyToIndex(x: isize, y: isize) isize {
     assert(y >= 0);
     assert(y < 8);
     return x + (y*8);
+}
+
+pub fn strToIndex(str: []const u8) isize {
+    assert(str.len == 2);
+    assert(str[0] >= 'a' and str[0] <= 'h');
+    assert(str[1] >= '1' and str[1] <= '8');
+
+    var file: isize = str[0] - 'a';
+    var rank: isize = str[1] - '1';
+    return xyToIndex(file, rank);
+}
+
+pub fn tryStrToIndex(str: []const u8) Position.Error!isize {
+    if (str.len != 2)
+        return Position.Error.FenInvalid;
+
+    if (str[0] < 'a' or str[0] > 'h')
+        return Position.Error.FenInvalid;
+
+    if (str[1] < '1' or str[1] > '8')
+        return Position.Error.FenInvalid;
+    
+    return strToIndex(str);
 }
 
 pub const IndexToXYRet = struct {
@@ -209,4 +233,16 @@ test "bits.tryPopLsb" {
 
     try std.testing.expectEqualSlices(isize, &expected, results.getItems());
     try std.testing.expect(@as(u64, 0) == bb);
+}
+
+test "bits.strToIndex" {
+    const ix0 = comptime strToIndex("a1");
+    const ix7 = comptime strToIndex("h1");
+    const ix8 = comptime strToIndex("a2");
+    const ix63 = comptime strToIndex("h8");
+
+    try std.testing.expectEqual(0, ix0);
+    try std.testing.expectEqual(7, ix7);
+    try std.testing.expectEqual(8, ix8);
+    try std.testing.expectEqual(63, ix63);
 }

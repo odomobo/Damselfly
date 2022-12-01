@@ -14,7 +14,7 @@ pub const Move = packed struct {
         castling: bool,
         quiet: bool,
         capture: bool,
-        _: u1,
+        _: u1 = 0,
     };
 
     moveType: MoveType,

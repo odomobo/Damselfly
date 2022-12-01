@@ -32,6 +32,7 @@ pub fn build(b: *std.build.Builder) void {
     test_step.dependOn(&exe_tests.step);
 
     register_xxx(b, target, mode);
+    register_perft(b, target, mode);
 }
 
 fn register_xxx(b: *std.build.Builder, target: std.zig.CrossTarget, mode: std.builtin.Mode) void {
@@ -42,7 +43,7 @@ fn register_xxx(b: *std.build.Builder, target: std.zig.CrossTarget, mode: std.bu
 
     const install_exe = b.addInstallArtifact(exe);
 
-    const install_step = b.step("build-xxx", "Build adhoc test application");
+    const install_step = b.step("xxx", "Build adhoc test application");
     install_step.dependOn(&install_exe.step);
 
     const run_cmd = exe.run();
@@ -51,6 +52,27 @@ fn register_xxx(b: *std.build.Builder, target: std.zig.CrossTarget, mode: std.bu
         run_cmd.addArgs(args);
     }
 
-    const run_step = b.step("xxx", "Run adhoc test application");
+    const run_step = b.step("xxx-run", "Run adhoc test application");
+    run_step.dependOn(&run_cmd.step);
+}
+
+fn register_perft(b: *std.build.Builder, target: std.zig.CrossTarget, mode: std.builtin.Mode) void {
+    const exe = b.addExecutable("perft", "test/perft.zig");
+    exe.setTarget(target);
+    exe.setBuildMode(mode);
+    exe.addPackagePath("damselfly", "src/damselfly.zig");
+
+    const install_exe = b.addInstallArtifact(exe);
+
+    const install_step = b.step("perft", "Build perft test application");
+    install_step.dependOn(&install_exe.step);
+
+    const run_cmd = exe.run();
+    run_cmd.step.dependOn(&install_exe.step);
+    if (b.args) |args| {
+        run_cmd.addArgs(args);
+    }
+
+    const run_step = b.step("perft-run", "Run perft test application");
     run_step.dependOn(&run_cmd.step);
 }

@@ -3,6 +3,7 @@ const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
 const Bitboard = df.types.Bitboard;
+const CanCastle = df.types.CanCastle;
 const Offset = df.types.Offset;
 const Move = df.types.Move;
 const Piece = df.types.Piece;
@@ -25,7 +26,7 @@ pub const Position = struct {
     parent: ?*Self,
     sideToMove: Color,
     enPassant: ?isize,
-    // castlingRights: CastlingRights, // TODO: include this when castling rights type is implemented
+    canCastle: CanCastle, // TODO: include this when castling rights type is implemented
     fiftyMoveCounter: isize, // resets to 0 after pawn move or capture; this is in number of plies
     gamePly: isize, // game's ply, starting from 0
     historyPly: isize, // similar to game ply, but from the position we started from, not from the initial position in the game
@@ -40,6 +41,7 @@ pub const Position = struct {
         .parent = null,
         .sideToMove = Color.White,
         .enPassant = null,
+        .canCastle = CanCastle{.whiteKingside = false, .whiteQueenside = false, .blackKingside = false, .blackQueenside = false},
         .fiftyMoveCounter = 0,
         .gamePly = 0,
         .historyPly = 0,
@@ -112,7 +114,8 @@ pub const Position = struct {
         if (maybeCastlingAbility == null)
             return Error.FenInvalid;
         
-        // TODO: extract
+        ret.canCastle = try CanCastle.tryFromStr(maybeCastlingAbility.?);
+        ret.canCastle.fixCastlingFromPosition(&ret); // this just needs to get called after the pieces are set
 
         var maybeEpSquare = splitFen.next();
         if (maybeEpSquare == null)
@@ -221,11 +224,35 @@ pub const Position = struct {
     }
 
     fn makeCastlingMove(self: *Self, move: Move) void {
-        _ = self;
-        _ = move;
-        unreachable;
-        // TODO: get rook indexes
-        // TODO: move king and rook
+        if (move.srcIndex == bits.strToIndex("e1")) {
+            self.clearIndex(bits.strToIndex("e1"));
+            if (move.dstIndex == bits.strToIndex("h1")) {
+                self.clearIndex(bits.strToIndex("h1"));
+                self.setIndexPiece(bits.strToIndex("f1"), Piece.WhiteRook);
+                self.setIndexPiece(bits.strToIndex("g1"), Piece.WhiteKing);
+            } else if (move.dstIndex == bits.strToIndex("a1")) {
+                self.clearIndex(bits.strToIndex("a1"));
+                self.setIndexPiece(bits.strToIndex("d1"), Piece.WhiteRook);
+                self.setIndexPiece(bits.strToIndex("c1"), Piece.WhiteKing);
+            } else {
+                unreachable;
+            }
+        } else if (move.srcIndex == bits.strToIndex("e8")) {
+            self.clearIndex(bits.strToIndex("e8"));
+            if (move.dstIndex == bits.strToIndex("h8")) {
+                self.clearIndex(bits.strToIndex("h8"));
+                self.setIndexPiece(bits.strToIndex("f8"), Piece.BlackRook);
+                self.setIndexPiece(bits.strToIndex("g8"), Piece.BlackKing);
+            } else if (move.dstIndex == bits.strToIndex("a8")) {
+                self.clearIndex(bits.strToIndex("a8"));
+                self.setIndexPiece(bits.strToIndex("d8"), Piece.BlackRook);
+                self.setIndexPiece(bits.strToIndex("c8"), Piece.BlackKing);
+            } else {
+                unreachable;
+            }
+        } else {
+            unreachable;
+        }
     }
 
     pub fn getXYPiece(self: *const Self, x: isize, y: isize) Piece {
@@ -294,6 +321,7 @@ pub const Position = struct {
                 try writer.print("\n", .{});
             }
             try writer.print("Side to move: {full}\n", .{self.sideToMove});
+            try writer.print("Castling rights: {}\n", .{self.canCastle});
         }
         else 
         {
