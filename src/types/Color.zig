@@ -1,11 +1,11 @@
 const std = @import("std");
 const df = @import("../damselfly.zig");
 
-pub const Color = enum(df.types.Piece.BackingType) {
+pub const Color = enum(u1) {
     const Self = @This();
 
     White = 0,
-    Black = 8,
+    Black = 1,
 
     pub fn other(self: Color) Color {
         return switch (self)

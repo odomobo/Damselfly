@@ -4,10 +4,8 @@ const df = @import("../damselfly.zig");
 const Color = df.types.Color;
 const PieceType = df.types.PieceType;
 
-pub const Piece = struct {
+pub const Piece = packed struct(u8) {
     const Self = @This();
-
-    pub const BackingType = u8;
 
     pub const None = Self.init(Color.White, PieceType.None);
     pub const WhitePawn = Self.init(Color.White, PieceType.Pawn);
@@ -23,10 +21,12 @@ pub const Piece = struct {
     pub const BlackQueen = Self.init(Color.Black, PieceType.Queen);
     pub const BlackKing = Self.init(Color.Black, PieceType.King);
 
-    data: BackingType, // TODO: use packed struct instead of this
+    pieceType: PieceType,
+    color: Color,
+    _: u4 = 0,
 
     pub fn init(color: Color, pieceType: PieceType) Self {
-        return Self{ .data = @enumToInt(color) | @enumToInt(pieceType)};
+        return Self{ .pieceType = pieceType, .color = color };
     }
 
     pub fn maybeFromChar(c: u8) ?Self {
@@ -48,19 +48,19 @@ pub const Piece = struct {
     }
 
     pub fn getColor(self: Self) Color {
-        return @intToEnum(Color, self.data & 0b1000);
+        return self.color;
     }
 
     pub fn getPieceType(self: Self) PieceType {
-        return @intToEnum(PieceType, self.data & 0b0111);
+        return self.pieceType;
     }
 
     pub fn eql(self: Self, other: Self) bool {
-        return self.data == other.data;
+        return self.pieceType == other.pieceType and self.color == other.color;
     }
 
     pub fn neql(self: Self, other: Self) bool {
-        return self.data != other.data;
+        return !self.eql(other);
     }
 
     pub fn deconstruct(self: Self, color: *Color, pieceType: *PieceType) void {

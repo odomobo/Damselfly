@@ -1,7 +1,7 @@
 const std = @import("std");
 const df = @import("../damselfly.zig");
 
-pub const PieceType = enum(df.types.Piece.BackingType) {
+pub const PieceType = enum(u3) {
     const Self = @This();
 
     Pawn = 0,
