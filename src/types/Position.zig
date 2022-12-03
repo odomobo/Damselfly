@@ -121,7 +121,11 @@ pub const Position = struct {
         if (maybeEpSquare == null)
             return Error.FenInvalid;
         
-        // TODO: extract
+        if (std.mem.eql(u8, "-", maybeEpSquare.?)) {
+            ret.enPassant = null;
+        } else {
+            ret.enPassant = try bits.tryStrToIndex(maybeEpSquare.?);
+        }
 
         var maybeHalfmoveClock = splitFen.next();
         if (maybeHalfmoveClock) |halfmoveClock| {
@@ -327,6 +331,7 @@ pub const Position = struct {
             }
             try writer.print("Side to move: {full}\n", .{self.sideToMove});
             try writer.print("Castling rights: {}\n", .{self.canCastle});
+            try writer.print("En passant square: {}\n", .{bits.indexToFormattable(self.enPassant)});
         }
         else 
         {

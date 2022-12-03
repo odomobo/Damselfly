@@ -39,6 +39,26 @@ pub fn indexToBit(index: isize) u64
     return @shlExact(@as(u64, 1), @intCast(u6, index));
 }
 
+pub const FormattableIndex = struct {
+    const Self = @This();
+
+    val: ?isize,
+
+    pub fn format(self: Self, comptime _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
+    {
+        if (self.val) |val| {
+            var xy = indexToXY(val);
+            try writer.print("{c}{c}", .{@intCast(u8, xy.x + 'a'), @intCast(u8, xy.y + '1')});
+        } else {
+            try writer.print("-", .{});
+        }
+    }
+};
+
+pub fn indexToFormattable(index: ?isize) FormattableIndex {
+    return FormattableIndex{.val = index};
+}
+
 pub fn xyToIndex(x: isize, y: isize) isize {
     assert(x >= 0);
     assert(x < 8);
@@ -80,7 +100,7 @@ pub fn indexToXY(index: isize) IndexToXYRet {
     assert(index < 64);
     
     return IndexToXYRet{
-        .x = index % 8,
+        .x = @mod(index, 8),
         .y = @divFloor(index, 8),
     };
 }
