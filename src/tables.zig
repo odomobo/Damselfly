@@ -1,4 +1,4 @@
-pub const Movements = @import("Movements.zig").Movements;
+pub const Movements = @import("tables/Movements.zig").Movements;
 
 // allows `zig build test` to work
 test {
