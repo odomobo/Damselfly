@@ -143,12 +143,12 @@ pub const Position = struct {
         return ret;
     }
 
-    pub fn makeFromMove(self: *const Self, move: Move) Self {
-        var ret: Self = self.*;
+    pub fn makeFromMove(parent: *const Self, move: Move) Self {
+        var ret: Self = parent.*;
 
-        ret.parent = self;
+        ret.parent = parent;
         ret.inCheck = [_]?bool{null, null}; // TODO: can use .{null, null} ?
-        ret.sideToMove = self.sideToMove.other();
+        ret.sideToMove = parent.sideToMove.other();
         ret.enPassant = null;
         ret.fiftyMoveCounter += 1;
         ret.gamePly += 1;
@@ -171,7 +171,7 @@ pub const Position = struct {
             unreachable;
         }
 
-        // TODO: update castling
+        ret.canCastle.updateCastlingFromMove(move);
 
         // TODO: zobrist hash
 
@@ -197,11 +197,13 @@ pub const Position = struct {
     fn makeNormalCaptureMove(self: *Self, move: Move) void {
         self.clearIndex(move.dstIndex);
         self.movePiece(move.srcIndex, move.dstIndex);
+        self.fiftyMoveCounter = 0;
     }
 
     fn makeDoublePawnMove(self: *Self, move: Move) void {
         self.movePiece(move.srcIndex, move.dstIndex); // TODO: could make more efficient by including pawn as the piece to move
         self.enPassant = @divExact(move.srcIndex + move.dstIndex, 2);
+        self.fiftyMoveCounter = 0;
     }
 
     fn makeEnPassantMove(self: *Self, move: Move) void {
@@ -210,17 +212,20 @@ pub const Position = struct {
 
         self.clearXY(srcXY.x, dstXY.y);
         self.movePiece(move.srcIndex, move.dstIndex);
+        self.fiftyMoveCounter = 0;
     }
 
     fn makePromotionQuietMove(self: *Self, move: Move) void {
         self.clearIndex(move.srcIndex); // TODO: could make more efficient by including pawn as the piece to clear
         self.setIndexPiece(move.dstIndex, move.promotionPiece); // TODO: could make more efficient by including pawn as the piece to move
+        self.fiftyMoveCounter = 0;
     }
 
     fn makePromotionCaptureMove(self: *Self, move: Move) void {
         self.clearIndex(move.srcIndex); // TODO: could make more efficient by including pawn as the piece to clear
         self.clearIndex(move.dstIndex);
         self.setIndexPiece(move.dstIndex, move.promotionPiece);
+        self.fiftyMoveCounter = 0;
     }
 
     fn makeCastlingMove(self: *Self, move: Move) void {
