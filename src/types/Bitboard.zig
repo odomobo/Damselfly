@@ -2,6 +2,7 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const bits = df.bits;
+const Offset = df.types.Offset;
 const assert = std.debug.assert;
 
 const Point = struct {
@@ -87,6 +88,37 @@ pub const Bitboard = struct {
     pub fn hasBitIndex(self: Self, index: isize) bool {
         var bit = bits.indexToBit(index);
         return (self.val & bit) != 0;
+    }
+
+    pub fn toIndex(self: Self) isize {
+        assert(bits.popCount(self.val) == 1);
+        return bits.bitToIndex(self.val);
+    }
+
+    pub fn getWithOffset(self: Self, offset: Offset) Self {
+        if (offset.val >= 0) {
+            return Self{ .val = @shlExact(self.val, @intCast(u6, offset.val))};
+        } else {
+            return Self{ .val = @shrExact(self.val, @intCast(u6, -offset.val))};
+        }
+    }
+
+    pub const BitboardBitIterator = struct {
+        const Self2 = @This();
+
+        val: u64,
+
+        pub fn next(self: *Self2) ?Bitboard
+        {
+            if (self.val == 0)
+                return null;
+            
+            return Bitboard{ .val = @as(u64, 1) << @intCast(u6, bits.popLsb(&self.val)) };
+        }
+    };
+
+    pub fn getIterator(self: Self) BitboardBitIterator { // TODO: can the return type be made more anonymous?
+        return BitboardBitIterator{ .val = self.val };
     }
 
     pub fn format(self: Self, comptime _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void

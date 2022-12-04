@@ -28,7 +28,7 @@ pub fn popCount(value: u64) isize
 
 pub fn bitToIndex(value: u64) isize
 {
-    assert(value & (value-1) == 0);
+    assert(popCount(value) == 1);
     return @ctz(value);
 }
 

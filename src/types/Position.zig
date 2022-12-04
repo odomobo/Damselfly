@@ -23,7 +23,7 @@ pub const Position = struct {
     occupiedPieces: [6]Bitboard,
     inCheck: [2]?bool = [2]?bool{null, null},
     squares: [64]Piece, // TODO: get rid of this? need to benchmark I guess
-    parent: ?*Self,
+    parent: ?*const Self,
     sideToMove: Color,
     enPassant: ?isize,
     canCastle: CanCastle, // TODO: include this when castling rights type is implemented
@@ -152,7 +152,6 @@ pub const Position = struct {
 
         ret.parent = parent;
         ret.inCheck = [_]?bool{null, null}; // TODO: can use .{null, null} ?
-        ret.sideToMove = parent.sideToMove.other();
         ret.enPassant = null;
         ret.fiftyMoveCounter += 1;
         ret.gamePly += 1;
@@ -176,6 +175,8 @@ pub const Position = struct {
         }
 
         ret.canCastle.updateCastlingFromMove(move);
+        // swap side to move after making the move
+        ret.sideToMove = parent.sideToMove.other();
 
         // TODO: zobrist hash
 
@@ -187,7 +188,7 @@ pub const Position = struct {
     }
 
     fn movePiece(self: *Self, srcIndex: isize, dstIndex: isize) void {
-        var piece = self.squares[srcIndex];
+        var piece = self.squares[@intCast(usize, srcIndex)];
         assert(piece.getPieceType() != PieceType.None);
 
         self.clearIndex(srcIndex);
@@ -221,14 +222,14 @@ pub const Position = struct {
 
     fn makePromotionQuietMove(self: *Self, move: Move) void {
         self.clearIndex(move.srcIndex); // TODO: could make more efficient by including pawn as the piece to clear
-        self.setIndexPiece(move.dstIndex, move.promotionPiece); // TODO: could make more efficient by including pawn as the piece to move
+        self.setIndexPiece(move.dstIndex, Piece.init(self.sideToMove, move.promotionPieceType)); // TODO: could make more efficient by including pawn as the piece to move
         self.fiftyMoveCounter = 0;
     }
 
     fn makePromotionCaptureMove(self: *Self, move: Move) void {
         self.clearIndex(move.srcIndex); // TODO: could make more efficient by including pawn as the piece to clear
         self.clearIndex(move.dstIndex);
-        self.setIndexPiece(move.dstIndex, move.promotionPiece);
+        self.setIndexPiece(move.dstIndex, Piece.init(self.sideToMove, move.promotionPieceType));
         self.fiftyMoveCounter = 0;
     }
 
@@ -312,10 +313,26 @@ pub const Position = struct {
             piece.clearIndex(index);
         }
 
-        self.squares[index] = Piece.None;
+        self.squares[@intCast(usize, index)] = Piece.None;
     }
 
-    pub fn format(self: Self, comptime fmt: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
+    pub fn getPieceBb(self: *const Self, color: Color, pieceType: PieceType) Bitboard {
+        assert(pieceType != PieceType.None);
+        
+        var colorMask = if (color == Color.White) self.occupiedWhite.val else ~self.occupiedWhite.val;
+
+        return Bitboard{ .val = colorMask & self.occupiedPieces[@enumToInt(pieceType)].val };
+    }
+
+    pub fn getColorBb(self: *const Self, color: Color) Bitboard {
+        if (color == Color.White) {
+            return self.occupiedWhite; // this is always exactly the occupied pieces for white
+        } else {
+            return Bitboard{ .val = ~self.occupiedWhite.val & self.occupied.val };
+        }
+    }
+
+    pub fn format(self: *const Self, comptime fmt: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
     {
         if (comptime std.mem.eql(u8, fmt, "short"))
         {

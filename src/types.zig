@@ -1,3 +1,4 @@
+const df = @import("damselfly.zig");
 
 pub const Color = @import("types/Color.zig").Color;
 pub const PieceType = @import("types/PieceType.zig").PieceType;
@@ -9,6 +10,8 @@ pub const Bitboard = @import("types/Bitboard.zig").Bitboard;
 pub const Position = @import("types/Position.zig").Position;
 pub const Move = @import("types/Move.zig").Move;
 pub const CanCastle = @import("types/CanCastle.zig").CanCastle;
+
+pub const MoveList = df.StaticArrayList(Move, 256);
 
 // allows `zig build test` to work
 test {

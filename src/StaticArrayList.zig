@@ -15,6 +15,10 @@ pub fn StaticArrayList(comptime T: type, comptime Size: usize) type {
             return self.data[0..self.len];
         }
 
+        pub fn getConstItems(self: *const Self) []const T {
+            return self.data[0..self.len];
+        }
+
         pub fn clone(self: *Self) Self {
             return fromSlice(self.getItems());
         }

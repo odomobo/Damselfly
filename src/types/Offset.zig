@@ -3,6 +3,7 @@ const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
 const Bitboard = df.types.Bitboard;
+const bits = df.bits;
 
 const Point = struct {
     x: isize,
@@ -45,6 +46,7 @@ pub const Offset = struct {
                 assert(p1.set == false);
                 p1 = cur;
                 p1.set = true;
+                cur.x += 1;
                 continue;
             }
 
@@ -53,6 +55,7 @@ pub const Offset = struct {
                 assert(p2.set == false);
                 p2 = cur;
                 p2.set = true;
+                cur.x += 1;
                 continue;
             }
 
@@ -75,6 +78,11 @@ pub const Offset = struct {
     pub fn getAllowedFromBb(self: Self) Bitboard {
         var index = self.val - minAllowedFromOffset.val;
         return allowedFromTable[@intCast(usize, index)];
+    }
+
+    pub fn isAllowedFrom(self: Self, bitboard: Bitboard) bool {
+        assert(bits.popCount(bitboard.val) == 1);
+        return (self.getAllowedFromBb().val & bitboard.val) != 0;
     }
 };
 

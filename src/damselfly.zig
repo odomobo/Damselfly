@@ -1,7 +1,8 @@
 pub const types = @import("types.zig");
 pub const tables = @import("tables.zig");
 pub const bits = @import("bits.zig");
-pub const StaticArrayList = @import("static_array_list.zig").StaticArrayList;
+pub const moveGen = @import("moveGen.zig");
+pub const StaticArrayList = @import("StaticArrayList.zig").StaticArrayList;
 
 // allows `zig build test` to work
 test {
