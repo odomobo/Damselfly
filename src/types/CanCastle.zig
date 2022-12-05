@@ -11,6 +11,7 @@ const assert = std.debug.assert;
 pub const CanCastle = packed struct(u8) {
     const Self = @This();
 
+    // TODO: remove these and use masks from tables.castling
     const whiteKingsideMask = Bitboard.fromStr(
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++

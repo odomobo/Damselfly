@@ -9,6 +9,7 @@ const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const bits = df.bits;
 const Movements = df.tables.Movements;
+const castling = df.tables.castling;
 
 // these are pseudo-legal moves; make only legal moves?
 pub fn generateMoves(position: *const Position, moveList: *MoveList) void {
@@ -22,7 +23,11 @@ pub fn generateMoves(position: *const Position, moveList: *MoveList) void {
     generateSliderMoves(PieceType.Rook, position, moveList);
     generateSliderMoves(PieceType.Queen, position, moveList);
     generateNonsliderMoves(PieceType.King, position, moveList);
-    // TODO: generate castling moves for king
+
+    switch (position.sideToMove) {
+        inline Color.White => generateWhiteCastlingMoves(position, moveList),
+        inline Color.Black => generateBlackCastlingMoves(position, moveList),
+    }
 
     // Remove illegal moves.
     // It would be more efficient to observe pins and not generate illegal moves, but this is much simpler to code for now.
@@ -131,6 +136,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
     }
 }
 
+// TODO: combine these into 1 function which takes "slider" as a comptime parameter
 fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Position, moveList: *MoveList) void {
     var selfOccupied = position.getColorBb(position.sideToMove);
 
@@ -193,5 +199,59 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
                     break;
             }
         }
+    }
+}
+
+fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) void {
+    if (position.inCheck)
+        return;
+    
+    if (position.canCastle.whiteKingside and
+        (position.occupied.val & castling.whiteKingsideClearMask.val) == 0 and
+        !position.isSquareAttacked(Color.White, castling.whiteKingsidePassthroughSquare)
+    ) {
+        moveList.append(Move{ 
+            .moveType = .{ .castling = true, .quiet = true },
+            .srcIndex = @intCast(i8, bits.strToIndex("e1")),
+            .dstIndex = @intCast(i8, bits.strToIndex("g1")),
+        });
+    }
+
+    if (position.canCastle.whiteQueenside and
+        (position.occupied.val & castling.whiteQueensideClearMask.val) == 0 and
+        !position.isSquareAttacked(Color.White, castling.whiteQueensidePassthroughSquare)
+    ) {
+        moveList.append(Move{ 
+            .moveType = .{ .castling = true, .quiet = true },
+            .srcIndex = @intCast(i8, bits.strToIndex("e1")),
+            .dstIndex = @intCast(i8, bits.strToIndex("c1")),
+        });
+    }
+}
+
+fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) void {
+    if (position.inCheck)
+        return;
+    
+    if (position.canCastle.blackKingside and
+        (position.occupied.val & castling.blackKingsideClearMask.val) == 0 and
+        !position.isSquareAttacked(Color.Black, castling.blackKingsidePassthroughSquare)
+    ) {
+        moveList.append(Move{ 
+            .moveType = .{ .castling = true, .quiet = true },
+            .srcIndex = @intCast(i8, bits.strToIndex("e8")),
+            .dstIndex = @intCast(i8, bits.strToIndex("g8")),
+        });
+    }
+
+    if (position.canCastle.blackQueenside and
+        (position.occupied.val & castling.blackQueensideClearMask.val) == 0 and
+        !position.isSquareAttacked(Color.Black, castling.blackQueensidePassthroughSquare)
+    ) {
+        moveList.append(Move{ 
+            .moveType = .{ .castling = true, .quiet = true },
+            .srcIndex = @intCast(i8, bits.strToIndex("e8")),
+            .dstIndex = @intCast(i8, bits.strToIndex("c8")),
+        });
     }
 }

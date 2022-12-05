@@ -254,11 +254,11 @@ pub const Position = struct {
     fn makeCastlingMove(self: *Self, move: Move) void {
         if (move.srcIndex == bits.strToIndex("e1")) {
             self.clearIndex(bits.strToIndex("e1"));
-            if (move.dstIndex == bits.strToIndex("h1")) {
+            if (move.dstIndex == bits.strToIndex("g1")) {
                 self.clearIndex(bits.strToIndex("h1"));
                 self.setIndexPiece(bits.strToIndex("f1"), Piece.WhiteRook);
                 self.setIndexPiece(bits.strToIndex("g1"), Piece.WhiteKing);
-            } else if (move.dstIndex == bits.strToIndex("a1")) {
+            } else if (move.dstIndex == bits.strToIndex("c1")) {
                 self.clearIndex(bits.strToIndex("a1"));
                 self.setIndexPiece(bits.strToIndex("d1"), Piece.WhiteRook);
                 self.setIndexPiece(bits.strToIndex("c1"), Piece.WhiteKing);
@@ -267,12 +267,12 @@ pub const Position = struct {
             }
         } else if (move.srcIndex == bits.strToIndex("e8")) {
             self.clearIndex(bits.strToIndex("e8"));
-            if (move.dstIndex == bits.strToIndex("h8")) {
+            if (move.dstIndex == bits.strToIndex("g8")) {
                 self.clearIndex(bits.strToIndex("h8"));
                 self.setIndexPiece(bits.strToIndex("f8"), Piece.BlackRook);
                 self.setIndexPiece(bits.strToIndex("g8"), Piece.BlackKing);
             } else if (move.dstIndex == bits.strToIndex("a8")) {
-                self.clearIndex(bits.strToIndex("a8"));
+                self.clearIndex(bits.strToIndex("c8"));
                 self.setIndexPiece(bits.strToIndex("d8"), Piece.BlackRook);
                 self.setIndexPiece(bits.strToIndex("c8"), Piece.BlackKing);
             } else {
