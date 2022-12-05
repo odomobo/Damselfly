@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <style type="text/css">
+      #bitboard-display {
+        font-family: monospace;
+        font-size: 50pt;
+        //color: black;
+        text-shadow: 2px 2px 3px #ff9999;
+      }
+    </style>
+  </head>
+  <body>
+    bitboard: <input type="text" id="bitboard"></input>
+    <div id="bitboard-display"></div>
+    
+    <script type="text/javascript">
+      var bitboard = document.getElementById("bitboard");
+
+      // Execute a function when the user presses a key on the keyboard
+      bitboard.addEventListener("keypress", function(event) {
+        // If the user presses the "Enter" key on the keyboard
+        if (event.key === "Enter") {
+          // Cancel the default action, if needed
+          event.preventDefault();
+          
+          var val = parseInt(bitboard.value);
+          showBitboard(val);
+        }
+      });
+      
+      function showBitboard(val) {
+        var lines = ["", "", "", "", "", "", "", "", ""];
+          var val = parseInt(bitboard.value);
+          
+          for (var y = 7; y >= 0; y--) {
+            var currentLine = "" + (8 - y);
+            for (var x = 0; x < 8; x++) { 
+              if ((val % 2) == 1) {
+                currentLine += " O";
+              } else {
+                currentLine += " .";
+              }
+              val = Math.floor(val/2);
+            }
+            lines[y] = currentLine;
+          }
+          lines[8] = "- A B C D E F G H";
+          
+          var bitboardDisplay = document.getElementById("bitboard-display");
+          bitboardDisplay.innerHTML = lines.join("<br>");
+      }
+      
+      showBitboard(0);
+    </script>
+  </body>
+</html>

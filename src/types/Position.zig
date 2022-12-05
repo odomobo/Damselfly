@@ -10,6 +10,7 @@ const Piece = df.types.Piece;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const bits = df.bits;
+const Movements = df.tables.Movements;
 
 pub const Position = struct {
     const Self = @This();
@@ -21,7 +22,7 @@ pub const Position = struct {
     occupied: Bitboard,
     occupiedWhite: Bitboard,
     occupiedPieces: [6]Bitboard,
-    inCheck: [2]?bool = [2]?bool{null, null},
+    inCheck: bool,
     squares: [64]Piece, // TODO: get rid of this? need to benchmark I guess
     parent: ?*const Self,
     sideToMove: Color,
@@ -37,6 +38,7 @@ pub const Position = struct {
         .occupied = Bitboard.empty,
         .occupiedWhite = Bitboard.empty,
         .occupiedPieces = [_]Bitboard{Bitboard.empty} ** 6,
+        .inCheck = false,
         .squares = [_]Piece{Piece.None} ** 64,
         .parent = null,
         .sideToMove = Color.White,
@@ -98,6 +100,17 @@ pub const Position = struct {
         if (x != 8 or y != 0)
             return Error.FenInvalid;
 
+        // if not 1 white king and not 1 black king, then FEN is invalid
+        if (bits.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
+            return Error.FenInvalid;
+
+        if (bits.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
+            return Error.FenInvalid;
+
+        // if for the position, the other side is in check, it's not a valid position because that means we could capture their king on this move.
+        if (ret.isOtherKingInCheck())
+            return Error.FenInvalid;
+
         var maybeSideToMove = splitFen.next();
         if (maybeSideToMove == null)
             return Error.FenInvalid;
@@ -144,6 +157,8 @@ pub const Position = struct {
         if (maybeExtra != null)
             return Error.FenInvalid;
 
+        ret.calculateInCheck();
+
         return ret;
     }
 
@@ -151,7 +166,6 @@ pub const Position = struct {
         var ret: Self = parent.*;
 
         ret.parent = parent;
-        ret.inCheck = [_]?bool{null, null}; // TODO: can use .{null, null} ?
         ret.enPassant = null;
         ret.fiftyMoveCounter += 1;
         ret.gamePly += 1;
@@ -168,6 +182,8 @@ pub const Position = struct {
             ret.makeEnPassantMove(move);
         } else if (moveType.promotion and moveType.quiet) {
             ret.makePromotionQuietMove(move);
+        } else if (moveType.promotion and moveType.capture) {
+            ret.makePromotionCaptureMove(move);
         } else if (moveType.castling and moveType.quiet) {
             ret.makeCastlingMove(move);
         } else {
@@ -183,6 +199,8 @@ pub const Position = struct {
         // TODO: calculate repetition number
 
         // TODO: update 50 move rule
+
+        ret.calculateInCheck();
 
         return ret;
     }
@@ -263,6 +281,81 @@ pub const Position = struct {
         } else {
             unreachable;
         }
+    }
+
+    fn calculateInCheck(self: *Self) void {
+        var kingVal = self.getPieceBb(self.sideToMove, PieceType.King);
+        assert(bits.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        self.inCheck = self.isSquareAttacked(self.sideToMove, kingVal);
+    }
+
+    pub fn isOtherKingInCheck(self: *const Self) bool {
+        var kingVal = self.getPieceBb(self.sideToMove.other(), PieceType.King);
+        assert(bits.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        return self.isSquareAttacked(self.sideToMove.other(), kingVal);
+    }
+
+    pub fn isSquareAttacked(self: *const Self, color: Color, square: Bitboard) bool {
+        assert(bits.popCount(square.val) == 1); // TODO: assertParanoid
+
+        switch (color) {
+            inline else => |comptimeColor| {
+                // we use the current color for pawn captures, because we're checking in the opposite direction of the pawn's real capture direction
+                if (self.isSquareAttackedWithOffsetPieceSlider(comptimeColor, square, Movements.pawnCaptures(comptimeColor), &[_]PieceType{PieceType.Pawn}, false))
+                    return true;
+            }
+        }
+
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.Knight), &[_]PieceType{PieceType.Knight}, false))
+            return true;
+        
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.Rook), &[_]PieceType{PieceType.Rook, PieceType.Queen}, true))
+            return true;
+
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.Bishop), &[_]PieceType{PieceType.Bishop, PieceType.Queen}, true))
+            return true;
+
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.King), &[_]PieceType{PieceType.King}, false))
+            return true;
+
+        return false;
+    }
+
+    fn isSquareAttackedWithOffsetPieceSlider(self: *const Self, color: Color, square: Bitboard, comptime offsets: []const Offset, comptime pieceTypes: []const PieceType, comptime isSlider: bool) bool {
+        assert(bits.popCount(square.val) == 1); // TODO: assertParanoid
+        const occupied = self.occupied;
+        const otherOccupied = self.getColorBb(color.other());
+
+        for (offsets) |offset| {
+            var currentSquare = square;
+            while (true) {
+                if (!offset.isAllowedFrom(currentSquare))
+                    break;
+                
+                currentSquare = currentSquare.getWithOffset(offset);
+                if ((currentSquare.val & otherOccupied.val) != 0)
+                {
+                    inline for (pieceTypes) |pieceType| {
+                        if ((currentSquare.val & self.getPieceBb(color.other(), pieceType).val) != 0) {
+                            return true;
+                        }
+                    }
+
+                    // if it wasn't any of those, then we can't continue in this direction.
+                    break;
+                }
+
+                // hit our own piece
+                if ((currentSquare.val & occupied.val) != 0)
+                    break;
+
+                // this shouldn't be a loop if it's not a slider
+                if (!isSlider)
+                    break;
+            }
+        }
+
+        return false;
     }
 
     pub fn getXYPiece(self: *const Self, x: isize, y: isize) Piece {
@@ -347,6 +440,8 @@ pub const Position = struct {
                 try writer.print("\n", .{});
             }
             try writer.print("Side to move: {full}\n", .{self.sideToMove});
+            if (self.inCheck)
+                try writer.print("In check.\n", .{});
             try writer.print("Castling rights: {}\n", .{self.canCastle});
             try writer.print("En passant square: {}\n", .{bits.indexToFormattable(self.enPassant)});
         }
