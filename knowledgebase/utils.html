@@ -10,12 +10,15 @@
     </style>
   </head>
   <body>
-    Usage: type in a decimal number (representing a bitboard) and hit enter.<br>
-    bitboard: <input type="text" id="bitboard"></input>
+    Usage: type in a decimal number representing a bitboard and hit enter.<br>
+    Bitboard: <input type="text" id="bitboard"></input><br><br>
+    Usage: type in a decimal number representing an index and hit enter.<br>
+    Index: <input type="text" id="index"></input><br><br>
     <div id="bitboard-display"></div>
     
     <script type="text/javascript">
       var bitboard = document.getElementById("bitboard");
+      var index = document.getElementById("index");
 
       // Execute a function when the user presses a key on the keyboard
       bitboard.addEventListener("keypress", function(event) {
@@ -24,34 +27,50 @@
           // Cancel the default action, if needed
           event.preventDefault();
           
-          var val = parseInt(bitboard.value);
+          var val = BigInt(bitboard.value);
           showBitboard(val);
+        }
+      });
+      
+      index.addEventListener("keypress", function(event) {
+        // If the user presses the "Enter" key on the keyboard
+        if (event.key === "Enter") {
+          // Cancel the default action, if needed
+          event.preventDefault();
+          
+          var val = BigInt(index.value);
+          showIndex(val);
         }
       });
       
       function showBitboard(val) {
         var lines = ["", "", "", "", "", "", "", "", ""];
-          var val = parseInt(bitboard.value);
-          
-          for (var y = 7; y >= 0; y--) {
-            var currentLine = "" + (8 - y);
-            for (var x = 0; x < 8; x++) { 
-              if ((val % 2) == 1) {
-                currentLine += " O";
-              } else {
-                currentLine += " .";
-              }
-              val = Math.floor(val/2);
+        
+        for (var y = 7; y >= 0; y--) {
+          var currentLine = "" + (8 - y);
+          for (var x = 0; x < 8; x++) { 
+            if ((val % BigInt(2)) == BigInt(1)) {
+              currentLine += " O";
+            } else {
+              currentLine += " .";
             }
-            lines[y] = currentLine;
+            //val = Math.floor(val/BigInt(2));
+            val = val/BigInt(2);
           }
-          lines[8] = "- A B C D E F G H";
-          
-          var bitboardDisplay = document.getElementById("bitboard-display");
-          bitboardDisplay.innerHTML = lines.join("<br>");
+          lines[y] = currentLine;
+        }
+        lines[8] = "- A B C D E F G H";
+        
+        var bitboardDisplay = document.getElementById("bitboard-display");
+        bitboardDisplay.innerHTML = lines.join("<br>");
       }
       
-      showBitboard(0);
+      function showIndex(val) {
+        var bitboardVal = BigInt(1) << val;
+        showBitboard(bitboardVal);
+      }
+      
+      showBitboard(BigInt(0));
     </script>
   </body>
 </html>

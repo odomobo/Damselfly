@@ -6,7 +6,7 @@ const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const bits = df.bits;
 
-pub const Move = packed struct {
+pub const Move = struct {
     const Self = @This();
 
     pub const MoveType = packed struct(u8) {

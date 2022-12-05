@@ -104,24 +104,24 @@ pub const Position = struct {
         if (bits.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
             return Error.FenInvalid;
 
-        if (bits.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
-            return Error.FenInvalid;
-
-        // if for the position, the other side is in check, it's not a valid position because that means we could capture their king on this move.
-        if (ret.isOtherKingInCheck())
+        if (bits.popCount(ret.getPieceBb(Color.Black, PieceType.King).val) != 1)
             return Error.FenInvalid;
 
         var maybeSideToMove = splitFen.next();
         if (maybeSideToMove == null)
             return Error.FenInvalid;
-        
+
         if (std.mem.eql(u8, "w", maybeSideToMove.?)) {
             ret.sideToMove = Color.White;
         } else if (std.mem.eql(u8, "b", maybeSideToMove.?)) {
-            ret.sideToMove = Color.White;
+            ret.sideToMove = Color.Black;
         } else {
             return Error.FenInvalid;
         }
+
+        // if for the position, the side not to move is in check, it's not a valid position because that means we could capture their king on this move.
+        if (ret.isOtherKingInCheck())
+            return Error.FenInvalid;
 
         var maybeCastlingAbility = splitFen.next();
         if (maybeCastlingAbility == null)
@@ -164,7 +164,7 @@ pub const Position = struct {
 
     pub fn makeFromMove(parent: *const Self, move: Move) Self {
         var ret: Self = parent.*;
-
+        
         ret.parent = parent;
         ret.enPassant = null;
         ret.fiftyMoveCounter += 1;
@@ -233,7 +233,7 @@ pub const Position = struct {
         var srcXY = bits.indexToXY(move.srcIndex);
         var dstXY = bits.indexToXY(move.dstIndex);
 
-        self.clearXY(srcXY.x, dstXY.y);
+        self.clearXY(dstXY.x, srcXY.y);
         self.movePiece(move.srcIndex, move.dstIndex);
         self.fiftyMoveCounter = 0;
     }
@@ -271,8 +271,8 @@ pub const Position = struct {
                 self.clearIndex(bits.strToIndex("h8"));
                 self.setIndexPiece(bits.strToIndex("f8"), Piece.BlackRook);
                 self.setIndexPiece(bits.strToIndex("g8"), Piece.BlackKing);
-            } else if (move.dstIndex == bits.strToIndex("a8")) {
-                self.clearIndex(bits.strToIndex("c8"));
+            } else if (move.dstIndex == bits.strToIndex("c8")) {
+                self.clearIndex(bits.strToIndex("a8"));
                 self.setIndexPiece(bits.strToIndex("d8"), Piece.BlackRook);
                 self.setIndexPiece(bits.strToIndex("c8"), Piece.BlackKing);
             } else {
