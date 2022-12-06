@@ -7,55 +7,11 @@ const Position = df.types.Position;
 const Piece = df.types.Piece;
 const Move = df.types.Move;
 const indexes = df.indexes;
+const castling = df.tables.castling;
 const assert = std.debug.assert;
 
 pub const CanCastle = packed struct(u8) {
     const Self = @This();
-
-    // TODO: remove these and use masks from tables.castling
-    const whiteKingsideMask = bitboards.fromStr(
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . O . . O   "
-    );
-
-    const whiteQueensideMask = bitboards.fromStr(
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " O . . . O . . .   "
-    );
-
-    const blackKingsideMask = bitboards.fromStr(
-        " . . . . O . . O / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . .   "
-    );
-
-    const blackQueensideMask = bitboards.fromStr(
-        " O . . . O . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . . / " ++
-        " . . . . . . . .   "
-    );
 
     whiteKingside: bool,
     whiteQueenside: bool,
@@ -121,16 +77,16 @@ pub const CanCastle = packed struct(u8) {
         bitboards.setIndex(&moveBb, move.srcIndex);
         bitboards.setIndex(&moveBb, move.dstIndex);
 
-        if (moveBb & whiteKingsideMask != 0)
+        if (moveBb & castling.whiteKingsidePieceMask != 0)
             self.whiteKingside = false;
 
-        if (moveBb & whiteQueensideMask != 0)
+        if (moveBb & castling.whiteQueensidePieceMask != 0)
             self.whiteQueenside = false;
         
-        if (moveBb & blackKingsideMask != 0)
+        if (moveBb & castling.blackKingsidePieceMask != 0)
             self.blackKingside = false;
 
-        if (moveBb & blackQueensideMask != 0)
+        if (moveBb & castling.blackQueensidePieceMask != 0)
             self.blackQueenside = false;
     }
 
