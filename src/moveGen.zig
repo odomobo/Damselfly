@@ -68,7 +68,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (normalMoveAllowed and !isFinalRank) {
                 moveList.append(Move{ 
                     .pieceType = .Pawn,
-                    .moveType = .{ .normal = true, .quiet = true },
+                    .moveType = .Normal,
+                    .capture = false,
                     .srcIndex = srcIx,
                     .dstIndex = normalMoveDstIx,
                 });
@@ -76,7 +77,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
                 for ([_]PieceType{PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop}) |pieceType| {
                     moveList.append(Move{ 
                         .pieceType = .Pawn,
-                        .moveType = .{ .promotion = true, .quiet = true },
+                        .moveType = .Promotion,
+                        .capture = false,
                         .srcIndex = srcIx,
                         .dstIndex = normalMoveDstIx,
                         .promotionPieceType = pieceType,
@@ -95,7 +97,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (doubleMoveAllowed) {
                 moveList.append(Move{
                     .pieceType = .Pawn,
-                    .moveType = .{ .doubleMove = true, .quiet = true },
+                    .moveType = .DoubleMove,
+                    .capture = false,
                     .srcIndex = srcIx,
                     .dstIndex = doubleMoveDstIx,
                 });
@@ -114,7 +117,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (captureAllowed and !isFinalRank) {
                 moveList.append(Move{
                     .pieceType = .Pawn,
-                    .moveType = .{ .normal = true, .capture = true },
+                    .moveType = .Normal,
+                    .capture = true,
                     .srcIndex = srcIx,
                     .dstIndex = captureDstIx,
                 });
@@ -122,7 +126,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
                 for ([_]PieceType{PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop}) |pieceType| {
                     moveList.append(Move{
                         .pieceType = .Pawn,
-                        .moveType = .{ .promotion = true, .capture = true },
+                        .moveType = .Promotion,
+                        .capture = true,
                         .srcIndex = srcIx,
                         .dstIndex = captureDstIx,
                         .promotionPieceType = pieceType,
@@ -134,7 +139,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (captureDstIx == position.enPassant) {
                 moveList.append(Move{ 
                     .pieceType = .Pawn,
-                    .moveType = .{ .enPassant = true, .capture = true },
+                    .moveType = .EnPassant,
+                    .capture = true,
                     .srcIndex = srcIx,
                     .dstIndex = captureDstIx,
                 });
@@ -166,7 +172,8 @@ fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Positi
 
             moveList.append(Move{
                 .pieceType = pieceType,
-                .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
+                .moveType = .Normal,
+                .capture = isCapture,
                 .srcIndex = srcIx,
                 .dstIndex = dstIx,
             });
@@ -198,7 +205,8 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
 
                 moveList.append(Move{
                     .pieceType = pieceType,
-                    .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
+                    .moveType = .Normal,
+                    .capture = isCapture,
                     .srcIndex = srcIx,
                     .dstIndex = dstIx,
                 });
@@ -221,7 +229,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{
             .pieceType = .King,
-            .moveType = .{ .castling = true, .quiet = true },
+            .moveType = .Castling,
+            .capture = false,
             .srcIndex = indexes.strToIndex("e1"),
             .dstIndex = indexes.strToIndex("g1"),
         });
@@ -233,7 +242,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .pieceType = .King,
-            .moveType = .{ .castling = true, .quiet = true },
+            .moveType = .Castling,
+            .capture = false,
             .srcIndex = indexes.strToIndex("e1"),
             .dstIndex = indexes.strToIndex("c1"),
         });
@@ -250,7 +260,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{
             .pieceType = .King,
-            .moveType = .{ .castling = true, .quiet = true },
+            .moveType = .Castling,
+            .capture = false,
             .srcIndex = indexes.strToIndex("e8"),
             .dstIndex = indexes.strToIndex("g8"),
         });
@@ -262,7 +273,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{
             .pieceType = .King,
-            .moveType = .{ .castling = true, .quiet = true },
+            .moveType = .Castling,
+            .capture = false,
             .srcIndex = indexes.strToIndex("e8"),
             .dstIndex = indexes.strToIndex("c8"),
         });

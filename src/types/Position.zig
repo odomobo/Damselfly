@@ -173,22 +173,22 @@ pub const Position = struct {
         ret.lastMoveWasReversible = false; // all the special cases are non-reversible; only normal quiet moves are reversible
 
         var moveType = move.moveType;
-        if (moveType.normal and moveType.quiet) {
+        if (moveType == .Normal and !move.capture) {
             ret.makeNormalQuietMove(move);
             if (move.pieceType != .Pawn) {
                 ret.lastMoveWasReversible = true;
             }
-        } else if (moveType.normal and moveType.capture) {
+        } else if (moveType == .Normal and move.capture) {
             ret.makeNormalCaptureMove(move);
-        } else if (moveType.doubleMove and moveType.quiet) {
+        } else if (moveType == .DoubleMove and !move.capture) {
             ret.makeDoublePawnMove(move);
-        } else if (moveType.enPassant and moveType.capture) {
+        } else if (moveType == .EnPassant and move.capture) {
             ret.makeEnPassantMove(move);
-        } else if (moveType.promotion and moveType.quiet) {
+        } else if (moveType == .Promotion and !move.capture) {
             ret.makePromotionQuietMove(move);
-        } else if (moveType.promotion and moveType.capture) {
+        } else if (moveType == .Promotion and move.capture) {
             ret.makePromotionCaptureMove(move);
-        } else if (moveType.castling and moveType.quiet) {
+        } else if (moveType == .Castling and !move.capture) {
             ret.makeCastlingMove(move);
         } else {
             unreachable;
