@@ -214,26 +214,25 @@ pub const Position = struct {
         return ret;
     }
 
-    fn movePiece(self: *Self, srcIndex: Index, dstIndex: Index) void {
-        var piece = self.getIndexPiece(srcIndex);
-        assert(piece.getPieceType() != PieceType.None);
+    fn movePiece(self: *Self, srcIndex: Index, dstIndex: Index, pieceType: PieceType) void {
+        var piece = Piece.init(self.sideToMove, pieceType);
 
         self.clearIndex(srcIndex);
         self.setIndexPiece(dstIndex, piece);
     }
 
     fn makeNormalQuietMove(self: *Self, move: Move) void {
-        self.movePiece(move.srcIndex, move.dstIndex);
+        self.movePiece(move.srcIndex, move.dstIndex, move.pieceType);
     }
 
     fn makeNormalCaptureMove(self: *Self, move: Move) void {
         self.clearIndex(move.dstIndex);
-        self.movePiece(move.srcIndex, move.dstIndex);
+        self.movePiece(move.srcIndex, move.dstIndex, move.pieceType);
         self.fiftyMoveCounter = 0;
     }
 
     fn makeDoublePawnMove(self: *Self, move: Move) void {
-        self.movePiece(move.srcIndex, move.dstIndex); // TODO: could make more efficient by including pawn as the piece to move
+        self.movePiece(move.srcIndex, move.dstIndex, move.pieceType);
         self.enPassant = @intCast(Index, @divExact(@intCast(usize, move.srcIndex) + @intCast(usize, move.dstIndex), 2) );
         self.fiftyMoveCounter = 0;
     }
@@ -243,7 +242,7 @@ pub const Position = struct {
         var dstXY = indexes.indexToXY(move.dstIndex);
 
         self.clearXY(dstXY.x, srcXY.y);
-        self.movePiece(move.srcIndex, move.dstIndex);
+        self.movePiece(move.srcIndex, move.dstIndex, move.pieceType);
         self.fiftyMoveCounter = 0;
     }
 
