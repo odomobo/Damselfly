@@ -45,6 +45,18 @@ pub const CanCastle = packed struct(u8) {
         return ret;
     }
 
+    pub fn eql(self: CanCastle, other: CanCastle) bool {
+        return 
+            self.whiteKingside == other.whiteKingside and
+            self.whiteQueenside == other.whiteQueenside and
+            self.blackKingside == other.blackKingside and
+            self.blackQueenside == other.blackQueenside;
+    }
+
+    pub fn neql(self: CanCastle, other: CanCastle) bool {
+        return !self.eql(other);
+    }
+
     pub fn fixCastlingFromPosition(self: *Self, pos: *Position) void {
         if (pos.getIndexPiece(indexes.strToIndex("e1")).neql(Piece.WhiteKing))
         {

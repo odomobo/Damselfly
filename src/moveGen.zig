@@ -67,6 +67,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
 
             if (normalMoveAllowed and !isFinalRank) {
                 moveList.append(Move{ 
+                    .pieceType = .Pawn,
                     .moveType = .{ .normal = true, .quiet = true },
                     .srcIndex = srcIx,
                     .dstIndex = normalMoveDstIx,
@@ -74,6 +75,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             } else if (normalMoveAllowed and isFinalRank) {
                 for ([_]PieceType{PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop}) |pieceType| {
                     moveList.append(Move{ 
+                        .pieceType = .Pawn,
                         .moveType = .{ .promotion = true, .quiet = true },
                         .srcIndex = srcIx,
                         .dstIndex = normalMoveDstIx,
@@ -91,7 +93,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             const doubleMoveAllowed = doubleMoveDstSquare & occupied == 0;
 
             if (doubleMoveAllowed) {
-                moveList.append(Move{ 
+                moveList.append(Move{
+                    .pieceType = .Pawn,
                     .moveType = .{ .doubleMove = true, .quiet = true },
                     .srcIndex = srcIx,
                     .dstIndex = doubleMoveDstIx,
@@ -109,14 +112,16 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             const captureAllowed = captureDstSquare & otherOccupied != 0;
 
             if (captureAllowed and !isFinalRank) {
-                moveList.append(Move{ 
+                moveList.append(Move{
+                    .pieceType = .Pawn,
                     .moveType = .{ .normal = true, .capture = true },
                     .srcIndex = srcIx,
                     .dstIndex = captureDstIx,
                 });
             } else if (captureAllowed and isFinalRank) {
                 for ([_]PieceType{PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop}) |pieceType| {
-                    moveList.append(Move{ 
+                    moveList.append(Move{
+                        .pieceType = .Pawn,
                         .moveType = .{ .promotion = true, .capture = true },
                         .srcIndex = srcIx,
                         .dstIndex = captureDstIx,
@@ -128,6 +133,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             // en passant!
             if (captureDstIx == position.enPassant) {
                 moveList.append(Move{ 
+                    .pieceType = .Pawn,
                     .moveType = .{ .enPassant = true, .capture = true },
                     .srcIndex = srcIx,
                     .dstIndex = captureDstIx,
@@ -158,7 +164,8 @@ fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Positi
             var isCapture = dstSquare & position.occupied != 0;
             var dstIx = bitboards.toIndex(dstSquare);
 
-            moveList.append(Move{ 
+            moveList.append(Move{
+                .pieceType = pieceType,
                 .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
                 .srcIndex = srcIx,
                 .dstIndex = dstIx,
@@ -189,7 +196,8 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
                 var isCapture = dstSquare & position.occupied != 0;
                 var dstIx = bitboards.toIndex(dstSquare);
 
-                moveList.append(Move{ 
+                moveList.append(Move{
+                    .pieceType = pieceType,
                     .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
                     .srcIndex = srcIx,
                     .dstIndex = dstIx,
@@ -211,7 +219,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
         position.occupied & castling.whiteKingsideClearMask == 0 and
         !position.isSquareAttacked(Color.White, castling.whiteKingsidePassthroughSquare)
     ) {
-        moveList.append(Move{ 
+        moveList.append(Move{
+            .pieceType = .King,
             .moveType = .{ .castling = true, .quiet = true },
             .srcIndex = indexes.strToIndex("e1"),
             .dstIndex = indexes.strToIndex("g1"),
@@ -223,6 +232,7 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
         !position.isSquareAttacked(Color.White, castling.whiteQueensidePassthroughSquare)
     ) {
         moveList.append(Move{ 
+            .pieceType = .King,
             .moveType = .{ .castling = true, .quiet = true },
             .srcIndex = indexes.strToIndex("e1"),
             .dstIndex = indexes.strToIndex("c1"),
@@ -238,7 +248,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
         position.occupied & castling.blackKingsideClearMask == 0 and
         !position.isSquareAttacked(Color.Black, castling.blackKingsidePassthroughSquare)
     ) {
-        moveList.append(Move{ 
+        moveList.append(Move{
+            .pieceType = .King,
             .moveType = .{ .castling = true, .quiet = true },
             .srcIndex = indexes.strToIndex("e8"),
             .dstIndex = indexes.strToIndex("g8"),
@@ -249,7 +260,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
         position.occupied & castling.blackQueensideClearMask == 0 and
         !position.isSquareAttacked(Color.Black, castling.blackQueensidePassthroughSquare)
     ) {
-        moveList.append(Move{ 
+        moveList.append(Move{
+            .pieceType = .King,
             .moveType = .{ .castling = true, .quiet = true },
             .srcIndex = indexes.strToIndex("e8"),
             .dstIndex = indexes.strToIndex("c8"),

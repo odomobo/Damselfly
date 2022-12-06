@@ -33,7 +33,7 @@ pub const Position = struct {
     gamePly: isize, // game's ply, starting from 0
     historyPly: isize, // similar to game ply, but from the position we started from, not from the initial position in the game
     // zobristHash: ZobristHash, // TODO: include this when zobrist hash type is implemented
-    repetitionNumber: isize, // TODO: this depends on zobrist hash; 1 means this the first time it's been seen
+    lastMoveWasReversible: bool,
 
     pub const empty = Self {
         .occupied = 0,
@@ -47,7 +47,7 @@ pub const Position = struct {
         .fiftyMoveCounter = 0,
         .gamePly = 0,
         .historyPly = 0,
-        .repetitionNumber = 1,
+        .lastMoveWasReversible = false,
     };
 
     pub fn fromFen(fen: []const u8) !Position {
@@ -170,10 +170,14 @@ pub const Position = struct {
         ret.fiftyMoveCounter += 1;
         ret.gamePly += 1;
         ret.historyPly += 1;
+        ret.lastMoveWasReversible = false; // all the special cases are non-reversible; only normal quiet moves are reversible
 
         var moveType = move.moveType;
         if (moveType.normal and moveType.quiet) {
             ret.makeNormalQuietMove(move);
+            if (move.pieceType != .Pawn) {
+                ret.lastMoveWasReversible = true;
+            }
         } else if (moveType.normal and moveType.capture) {
             ret.makeNormalCaptureMove(move);
         } else if (moveType.doubleMove and moveType.quiet) {
@@ -199,6 +203,11 @@ pub const Position = struct {
         // TODO: calculate repetition number
 
         // TODO: update 50 move rule
+
+        // if the castling rights have changed, then the move wasn't reversible
+        if (ret.canCastle.neql(parent.canCastle)) {
+            ret.lastMoveWasReversible = false;
+        }
 
         ret.calculateInCheck();
 

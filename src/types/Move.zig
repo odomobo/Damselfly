@@ -11,16 +11,20 @@ pub const Move = struct {
     const Self = @This();
 
     pub const MoveType = packed struct(u8) {
+        // TODO: make this into an enum
         normal: bool = false,
+        promotion: bool = false,
         doubleMove: bool = false,
         enPassant: bool = false,
-        promotion: bool = false,
         castling: bool = false,
+
+        // and another enum
         quiet: bool = false,
         capture: bool = false,
         _: u1 = 0,
     };
 
+    pieceType: PieceType,
     moveType: MoveType,
     srcIndex: Index,
     dstIndex: Index,
