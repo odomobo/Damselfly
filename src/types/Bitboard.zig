@@ -1,7 +1,8 @@
 const std = @import("std");
 const df = @import("../damselfly.zig");
 
-const bits = df.bits;
+const indexes = df.indexes;
+const bitboards = df.bitboards;
 const Offset = df.types.Offset;
 const Index = df.types.Index;
 const assert = std.debug.assert;
@@ -65,35 +66,35 @@ pub const Bitboard = struct {
     }
 
     pub fn setXY(self: *Self, x: isize, y: isize) void {
-        self.setIndex(bits.xyToIndex(x, y));
+        self.setIndex(indexes.xyToIndex(x, y));
     }
 
     pub fn setIndex(self: *Self, index: Index) void {
-        var bit = bits.indexToBit(index);
+        var bit = indexes.indexToBit(index);
         self.val |= bit;
     }
 
     pub fn clearXY(self: *Self, x: isize, y: isize) void {
-        self.clearIndex(bits.xyToIndex(x, y));
+        self.clearIndex(indexes.xyToIndex(x, y));
     }
 
     pub fn clearIndex(self: *Self, index: Index) void {
-        var bit = bits.indexToBit(index);
+        var bit = indexes.indexToBit(index);
         self.val &= ~bit;
     }
 
     pub fn hasBitXY(self: Self, x: isize, y: isize) bool {
-        return self.hasBitIndex(bits.xyToIndex(x, y));
+        return self.hasBitIndex(indexes.xyToIndex(x, y));
     }
 
     pub fn hasBitIndex(self: Self, index: Index) bool {
-        var bit = bits.indexToBit(index);
+        var bit = indexes.indexToBit(index);
         return (self.val & bit) != 0;
     }
 
     pub fn toIndex(self: Self) Index {
-        assert(bits.popCount(self.val) == 1);
-        return bits.bitToIndex(self.val);
+        assert(bitboards.popCount(self.val) == 1);
+        return bitboards.bitToIndex(self.val);
     }
 
     pub fn getWithOffset(self: Self, offset: Offset) Self {
@@ -114,7 +115,7 @@ pub const Bitboard = struct {
             if (self.val == 0)
                 return null;
             
-            return Bitboard{ .val = @as(u64, 1) << @intCast(u6, bits.popLsb(&self.val)) };
+            return Bitboard{ .val = @as(u64, 1) << @intCast(u6, bitboards.popLsb(&self.val)) };
         }
     };
 

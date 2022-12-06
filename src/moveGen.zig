@@ -7,7 +7,7 @@ const Move = df.types.Move;
 const Piece = df.types.Piece;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
-const bits = df.bits;
+const indexes = df.indexes;
 const Movements = df.tables.Movements;
 const castling = df.tables.castling;
 
@@ -212,8 +212,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = bits.strToIndex("e1"),
-            .dstIndex = bits.strToIndex("g1"),
+            .srcIndex = indexes.strToIndex("e1"),
+            .dstIndex = indexes.strToIndex("g1"),
         });
     }
 
@@ -223,8 +223,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = bits.strToIndex("e1"),
-            .dstIndex = bits.strToIndex("c1"),
+            .srcIndex = indexes.strToIndex("e1"),
+            .dstIndex = indexes.strToIndex("c1"),
         });
     }
 }
@@ -239,8 +239,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = bits.strToIndex("e8"),
-            .dstIndex = bits.strToIndex("g8"),
+            .srcIndex = indexes.strToIndex("e8"),
+            .dstIndex = indexes.strToIndex("g8"),
         });
     }
 
@@ -250,8 +250,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = bits.strToIndex("e8"),
-            .dstIndex = bits.strToIndex("c8"),
+            .srcIndex = indexes.strToIndex("e8"),
+            .dstIndex = indexes.strToIndex("c8"),
         });
     }
 }

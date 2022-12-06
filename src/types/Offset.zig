@@ -3,7 +3,8 @@ const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
 const Bitboard = df.types.Bitboard;
-const bits = df.bits;
+const indexes = df.indexes;
+const bitboards = df.bitboards;
 
 const Point = struct {
     x: isize,
@@ -81,7 +82,7 @@ pub const Offset = struct {
     }
 
     pub fn isAllowedFrom(self: Self, bitboard: Bitboard) bool {
-        assert(bits.popCount(bitboard.val) == 1);
+        assert(bitboards.popCount(bitboard.val) == 1);
         return (self.getAllowedFromBb().val & bitboard.val) != 0;
     }
 };
@@ -94,7 +95,7 @@ const allowedFromTableSize = maxAllowedFromOffset.val - minAllowedFromOffset.val
 
 fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
     // This is run at compile time.
-    // Just naively, 7*7 different offsets, calculated on 8*8 bits each, is 3136.
+    // Just naively, 7*7 different offsets, calculated on 8*8 indexes each, is 3136.
     // We need more than this because of branch overhead in setXY, which has like 6 branches?
     @setEvalBranchQuota(7*7 * 8*8 * 10);
     var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{Bitboard.empty} ** allowedFromTableSize;

@@ -5,7 +5,7 @@ const Bitboard = df.types.Bitboard;
 const Position = df.types.Position;
 const Piece = df.types.Piece;
 const Move = df.types.Move;
-const bits = df.bits;
+const indexes = df.indexes;
 const assert = std.debug.assert;
 
 pub const CanCastle = packed struct(u8) {
@@ -89,29 +89,29 @@ pub const CanCastle = packed struct(u8) {
     }
 
     pub fn fixCastlingFromPosition(self: *Self, pos: *Position) void {
-        if (pos.getIndexPiece(bits.strToIndex("e1")).neql(Piece.WhiteKing))
+        if (pos.getIndexPiece(indexes.strToIndex("e1")).neql(Piece.WhiteKing))
         {
             self.whiteKingside = false;
             self.whiteQueenside = false;
         }
 
-        if (pos.getIndexPiece(bits.strToIndex("h1")).neql(Piece.WhiteRook))
+        if (pos.getIndexPiece(indexes.strToIndex("h1")).neql(Piece.WhiteRook))
             self.whiteKingside = false;
 
-        if (pos.getIndexPiece(bits.strToIndex("a1")).neql(Piece.WhiteRook))
+        if (pos.getIndexPiece(indexes.strToIndex("a1")).neql(Piece.WhiteRook))
             self.whiteQueenside = false;
 
 
-        if (pos.getIndexPiece(bits.strToIndex("e8")).neql(Piece.BlackKing))
+        if (pos.getIndexPiece(indexes.strToIndex("e8")).neql(Piece.BlackKing))
         {
             self.blackKingside = false;
             self.blackQueenside = false;
         }
 
-        if (pos.getIndexPiece(bits.strToIndex("h8")).neql(Piece.BlackRook))
+        if (pos.getIndexPiece(indexes.strToIndex("h8")).neql(Piece.BlackRook))
             self.blackKingside = false;
 
-        if (pos.getIndexPiece(bits.strToIndex("a8")).neql(Piece.BlackRook))
+        if (pos.getIndexPiece(indexes.strToIndex("a8")).neql(Piece.BlackRook))
             self.blackQueenside = false;
     }
 

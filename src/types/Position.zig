@@ -9,7 +9,8 @@ const Move = df.types.Move;
 const Piece = df.types.Piece;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
-const bits = df.bits;
+const indexes = df.indexes;
+const bitboards = df.bitboards;
 const Movements = df.tables.Movements;
 const Index = df.types.Index;
 
@@ -102,10 +103,10 @@ pub const Position = struct {
             return Error.FenInvalid;
 
         // if not 1 white king and not 1 black king, then FEN is invalid
-        if (bits.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
+        if (bitboards.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
             return Error.FenInvalid;
 
-        if (bits.popCount(ret.getPieceBb(Color.Black, PieceType.King).val) != 1)
+        if (bitboards.popCount(ret.getPieceBb(Color.Black, PieceType.King).val) != 1)
             return Error.FenInvalid;
 
         var maybeSideToMove = splitFen.next();
@@ -138,7 +139,7 @@ pub const Position = struct {
         if (std.mem.eql(u8, "-", maybeEpSquare.?)) {
             ret.enPassant = null;
         } else {
-            ret.enPassant = try bits.tryStrToIndex(maybeEpSquare.?);
+            ret.enPassant = try indexes.tryStrToIndex(maybeEpSquare.?);
         }
 
         var maybeHalfmoveClock = splitFen.next();
@@ -231,8 +232,8 @@ pub const Position = struct {
     }
 
     fn makeEnPassantMove(self: *Self, move: Move) void {
-        var srcXY = bits.indexToXY(move.srcIndex);
-        var dstXY = bits.indexToXY(move.dstIndex);
+        var srcXY = indexes.indexToXY(move.srcIndex);
+        var dstXY = indexes.indexToXY(move.dstIndex);
 
         self.clearXY(dstXY.x, srcXY.y);
         self.movePiece(move.srcIndex, move.dstIndex);
@@ -253,29 +254,29 @@ pub const Position = struct {
     }
 
     fn makeCastlingMove(self: *Self, move: Move) void {
-        if (move.srcIndex == bits.strToIndex("e1")) {
-            self.clearIndex(bits.strToIndex("e1"));
-            if (move.dstIndex == bits.strToIndex("g1")) {
-                self.clearIndex(bits.strToIndex("h1"));
-                self.setIndexPiece(bits.strToIndex("f1"), Piece.WhiteRook);
-                self.setIndexPiece(bits.strToIndex("g1"), Piece.WhiteKing);
-            } else if (move.dstIndex == bits.strToIndex("c1")) {
-                self.clearIndex(bits.strToIndex("a1"));
-                self.setIndexPiece(bits.strToIndex("d1"), Piece.WhiteRook);
-                self.setIndexPiece(bits.strToIndex("c1"), Piece.WhiteKing);
+        if (move.srcIndex == indexes.strToIndex("e1")) {
+            self.clearIndex(indexes.strToIndex("e1"));
+            if (move.dstIndex == indexes.strToIndex("g1")) {
+                self.clearIndex(indexes.strToIndex("h1"));
+                self.setIndexPiece(indexes.strToIndex("f1"), Piece.WhiteRook);
+                self.setIndexPiece(indexes.strToIndex("g1"), Piece.WhiteKing);
+            } else if (move.dstIndex == indexes.strToIndex("c1")) {
+                self.clearIndex(indexes.strToIndex("a1"));
+                self.setIndexPiece(indexes.strToIndex("d1"), Piece.WhiteRook);
+                self.setIndexPiece(indexes.strToIndex("c1"), Piece.WhiteKing);
             } else {
                 unreachable;
             }
-        } else if (move.srcIndex == bits.strToIndex("e8")) {
-            self.clearIndex(bits.strToIndex("e8"));
-            if (move.dstIndex == bits.strToIndex("g8")) {
-                self.clearIndex(bits.strToIndex("h8"));
-                self.setIndexPiece(bits.strToIndex("f8"), Piece.BlackRook);
-                self.setIndexPiece(bits.strToIndex("g8"), Piece.BlackKing);
-            } else if (move.dstIndex == bits.strToIndex("c8")) {
-                self.clearIndex(bits.strToIndex("a8"));
-                self.setIndexPiece(bits.strToIndex("d8"), Piece.BlackRook);
-                self.setIndexPiece(bits.strToIndex("c8"), Piece.BlackKing);
+        } else if (move.srcIndex == indexes.strToIndex("e8")) {
+            self.clearIndex(indexes.strToIndex("e8"));
+            if (move.dstIndex == indexes.strToIndex("g8")) {
+                self.clearIndex(indexes.strToIndex("h8"));
+                self.setIndexPiece(indexes.strToIndex("f8"), Piece.BlackRook);
+                self.setIndexPiece(indexes.strToIndex("g8"), Piece.BlackKing);
+            } else if (move.dstIndex == indexes.strToIndex("c8")) {
+                self.clearIndex(indexes.strToIndex("a8"));
+                self.setIndexPiece(indexes.strToIndex("d8"), Piece.BlackRook);
+                self.setIndexPiece(indexes.strToIndex("c8"), Piece.BlackKing);
             } else {
                 unreachable;
             }
@@ -286,18 +287,18 @@ pub const Position = struct {
 
     fn calculateInCheck(self: *Self) void {
         var kingVal = self.getPieceBb(self.sideToMove, PieceType.King);
-        assert(bits.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        assert(bitboards.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
         self.inCheck = self.isSquareAttacked(self.sideToMove, kingVal);
     }
 
     pub fn isOtherKingInCheck(self: *const Self) bool {
         var kingVal = self.getPieceBb(self.sideToMove.other(), PieceType.King);
-        assert(bits.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        assert(bitboards.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
         return self.isSquareAttacked(self.sideToMove.other(), kingVal);
     }
 
     pub fn isSquareAttacked(self: *const Self, color: Color, square: Bitboard) bool {
-        assert(bits.popCount(square.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(square.val) == 1); // TODO: assertParanoid
 
         switch (color) {
             inline else => |comptimeColor| {
@@ -323,7 +324,7 @@ pub const Position = struct {
     }
 
     fn isSquareAttackedWithOffsetPieceSlider(self: *const Self, color: Color, square: Bitboard, comptime offsets: []const Offset, comptime pieceTypes: []const PieceType, comptime isSlider: bool) bool {
-        assert(bits.popCount(square.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(square.val) == 1); // TODO: assertParanoid
         const occupied = self.occupied;
         const otherOccupied = self.getColorBb(color.other());
 
@@ -360,7 +361,7 @@ pub const Position = struct {
     }
 
     pub fn getXYPiece(self: *const Self, x: isize, y: isize) Piece {
-        return self.getIndexPiece(bits.xyToIndex(x, y));
+        return self.getIndexPiece(indexes.xyToIndex(x, y));
     }
 
     pub fn getIndexPiece(self: *const Self, index: Index) Piece {
@@ -368,7 +369,7 @@ pub const Position = struct {
     }
 
     pub fn setXYPiece(self: *Self, x: isize, y: isize, piece: Piece) void {
-        self.setIndexPiece(bits.xyToIndex(x, y), piece);
+        self.setIndexPiece(indexes.xyToIndex(x, y), piece);
     }
 
     pub fn setIndexPiece(self: *Self, index: Index, piece: Piece) void {
@@ -391,7 +392,7 @@ pub const Position = struct {
     }
 
     pub fn clearXY(self: *Self, x: isize, y: isize) void {
-        self.clearIndex(bits.xyToIndex(x, y));
+        self.clearIndex(indexes.xyToIndex(x, y));
     }
 
     pub fn clearIndex(self: *Self, index: Index) void {
@@ -444,7 +445,7 @@ pub const Position = struct {
             if (self.inCheck)
                 try writer.print("In check.\n", .{});
             try writer.print("Castling rights: {}\n", .{self.canCastle});
-            try writer.print("En passant square: {}\n", .{bits.indexToFormattable(self.enPassant)});
+            try writer.print("En passant square: {}\n", .{indexes.indexToFormattable(self.enPassant)});
         }
         else 
         {

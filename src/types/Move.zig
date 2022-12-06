@@ -5,7 +5,7 @@ const Piece = df.types.Piece;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const Index = df.types.Index;
-const bits = df.bits;
+const indexes = df.indexes;
 
 pub const Move = struct {
     const Self = @This();
@@ -31,9 +31,9 @@ pub const Move = struct {
     {
         if (self.moveType.promotion) {
             // note: we print black piece because they are naturally lowercase
-            try writer.print("{}{}{short}", .{bits.indexToFormattable(self.srcIndex), bits.indexToFormattable(self.dstIndex), Piece.init(Color.Black, self.promotionPieceType)});
+            try writer.print("{}{}{short}", .{indexes.indexToFormattable(self.srcIndex), indexes.indexToFormattable(self.dstIndex), Piece.init(Color.Black, self.promotionPieceType)});
         } else {
-            try writer.print("{}{}", .{bits.indexToFormattable(self.srcIndex), bits.indexToFormattable(self.dstIndex)});
+            try writer.print("{}{}", .{indexes.indexToFormattable(self.srcIndex), indexes.indexToFormattable(self.dstIndex)});
         }
     }
 };

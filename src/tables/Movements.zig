@@ -7,7 +7,8 @@ const StaticArrayList = df.StaticArrayList;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const Bitboard = df.types.Bitboard;
-const bits = df.bits;
+const indexes = df.indexes;
+const bitboards = df.bitboards;
 
 pub const Movements = struct {
     pub fn byPieceType(comptime pieceType: PieceType) []const Offset
@@ -47,7 +48,7 @@ pub const Movements = struct {
     }
 
     pub fn pawnDoubleMoveAllowed(sideToMove: Color, piece: Bitboard) bool {
-        assert(bits.popCount(piece.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(piece.val) == 1); // TODO: assertParanoid
 
         const allowedBb = switch (sideToMove) {
             Color.White => Bitboard.fromStr(
@@ -75,7 +76,7 @@ pub const Movements = struct {
     }
 
     pub fn pawnIsFinalRank(sideToMove: Color, piece: Bitboard) bool {
-        assert(bits.popCount(piece.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(piece.val) == 1); // TODO: assertParanoid
 
         const allowedBb = switch (sideToMove) {
             Color.White => Bitboard.fromStr(
