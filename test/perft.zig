@@ -5,8 +5,8 @@ const Position = df.types.Position;
 const MoveList = df.types.MoveList;
 
 pub fn main() !void {
-    initialPos();
     kiwipete();
+    initialPos();
     position3();
     position4();
     position4Mirrored();

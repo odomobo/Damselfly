@@ -11,7 +11,7 @@ const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const indexes = df.indexes;
 const bitboards = df.bitboards;
-const Movements = df.tables.Movements;
+const movements = df.tables.movements;
 const Index = df.types.Index;
 
 pub const Position = struct {
@@ -309,21 +309,21 @@ pub const Position = struct {
         switch (color) {
             inline else => |comptimeColor| {
                 // we use the current color for pawn captures, because we're checking in the opposite direction of the pawn's real capture direction
-                if (self.isSquareAttackedWithOffsetPieceSlider(comptimeColor, square, Movements.pawnCaptures(comptimeColor), &[_]PieceType{PieceType.Pawn}, false))
+                if (self.isSquareAttackedWithOffsetPieceSlider(comptimeColor, square, movements.pawnCaptures(comptimeColor), &[_]PieceType{PieceType.Pawn}, false))
                     return true;
             }
         }
 
-        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.Knight), &[_]PieceType{PieceType.Knight}, false))
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, movements.byPieceType(PieceType.Knight), &[_]PieceType{PieceType.Knight}, false))
             return true;
         
-        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.Rook), &[_]PieceType{PieceType.Rook, PieceType.Queen}, true))
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, movements.byPieceType(PieceType.Rook), &[_]PieceType{PieceType.Rook, PieceType.Queen}, true))
             return true;
 
-        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.Bishop), &[_]PieceType{PieceType.Bishop, PieceType.Queen}, true))
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, movements.byPieceType(PieceType.Bishop), &[_]PieceType{PieceType.Bishop, PieceType.Queen}, true))
             return true;
 
-        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, Movements.byPieceType(PieceType.King), &[_]PieceType{PieceType.King}, false))
+        if (self.isSquareAttackedWithOffsetPieceSlider(color, square, movements.byPieceType(PieceType.King), &[_]PieceType{PieceType.King}, false))
             return true;
 
         return false;
@@ -409,9 +409,6 @@ pub const Position = struct {
     }
 
     pub fn setIndexPiece(self: *Self, index: Index, piece: Piece) void {
-        assert(index >= 0);
-        assert(index < 64);
-
         assert(self.getIndexPiece(index).getPieceType() == PieceType.None);
         
         var pieceType = piece.getPieceType();

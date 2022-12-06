@@ -9,7 +9,7 @@ const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const indexes = df.indexes;
 const bitboards = df.bitboards;
-const Movements = df.tables.Movements;
+const movements = df.tables.movements;
 const castling = df.tables.castling;
 
 // these are pseudo-legal moves; make only legal moves?
@@ -54,12 +54,12 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
     const pieces = position.getPieceBb(sideToMove, PieceType.Pawn);
     var piecesIterator = bitboards.getSquareIterator(pieces);
     while (piecesIterator.next()) |pieceSquare| {
-        const isFinalRank = Movements.pawnIsFinalRank(sideToMove, pieceSquare);
+        const isFinalRank = movements.pawnIsFinalRank(sideToMove, pieceSquare);
         const srcIx = bitboards.toIndex(pieceSquare);
 
         // generate normal moves
         var normalMoveAllowed = false;
-        const normalMoveOffset = Movements.pawnNormalMove(sideToMove);
+        const normalMoveOffset = movements.pawnNormalMove(sideToMove);
         if (normalMoveOffset.isAllowedFrom(pieceSquare)) {
             const normalMoveDstSquare = bitboards.getWithOffset(pieceSquare, normalMoveOffset);
             const normalMoveDstIx = bitboards.toIndex(normalMoveDstSquare);
@@ -88,8 +88,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
         }
 
         // generate double moves; can't unless a normal move is also allowed, and starting from the starting square
-        if (normalMoveAllowed and Movements.pawnDoubleMoveAllowed(sideToMove, pieceSquare)) {
-            const doubleMoveOffset = Movements.pawnDoubleMove(sideToMove);
+        if (normalMoveAllowed and movements.pawnIsDoubleMoveAllowed(sideToMove, pieceSquare)) {
+            const doubleMoveOffset = movements.pawnDoubleMove(sideToMove);
             const doubleMoveDstSquare = bitboards.getWithOffset(pieceSquare, doubleMoveOffset);
             const doubleMoveDstIx = bitboards.toIndex(doubleMoveDstSquare);
             const doubleMoveAllowed = doubleMoveDstSquare & occupied == 0;
@@ -106,7 +106,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
         }
 
         // generate captures
-        for (Movements.pawnCaptures(sideToMove)) |captureOffset| {
+        for (movements.pawnCaptures(sideToMove)) |captureOffset| {
             if (!captureOffset.isAllowedFrom(pieceSquare))
                 continue;
             
@@ -157,7 +157,7 @@ fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Positi
     var piecesIterator = bitboards.getSquareIterator(pieces);
     while (piecesIterator.next()) |pieceSquare| {
         var srcIx = bitboards.toIndex(pieceSquare);
-        for (Movements.byPieceType(pieceType)) |offset| {
+        for (movements.byPieceType(pieceType)) |offset| {
             // skip if that jump isn't allowed from this position
             if (!offset.isAllowedFrom(pieceSquare))
                 continue;
@@ -188,7 +188,7 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
     var piecesIterator = bitboards.getSquareIterator(pieces);
     while (piecesIterator.next()) |pieceSquare| {
         var srcIx = bitboards.toIndex(pieceSquare);
-        for (Movements.byPieceType(pieceType)) |offset| {
+        for (movements.byPieceType(pieceType)) |offset| {
             var dstSquare = pieceSquare;
             while (true) {
                 // skip if that jump isn't allowed from this position
