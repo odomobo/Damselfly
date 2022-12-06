@@ -8,6 +8,7 @@ const Piece = df.types.Piece;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const indexes = df.indexes;
+const bitboards = df.bitboards;
 const Movements = df.tables.Movements;
 const castling = df.tables.castling;
 
@@ -51,17 +52,17 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
     const occupied = position.occupied;
 
     const pieces = position.getPieceBb(sideToMove, PieceType.Pawn);
-    var piecesIterator = pieces.getIterator();
+    var piecesIterator = bitboards.getSquareIterator(pieces);
     while (piecesIterator.next()) |pieceVal| {
         const isFinalRank = Movements.pawnIsFinalRank(sideToMove, pieceVal);
-        const srcIx = pieceVal.toIndex();
+        const srcIx = bitboards.toIndex(pieceVal);
 
         // generate normal moves
         var normalMoveAllowed = false;
         const normalMoveOffset = Movements.pawnNormalMove(sideToMove);
         if (normalMoveOffset.isAllowedFrom(pieceVal)) {
-            const normalMoveDstVal = pieceVal.getWithOffset(normalMoveOffset);
-            const normalMoveDstIx = normalMoveDstVal.toIndex();
+            const normalMoveDstVal = bitboards.getWithOffset(pieceVal, normalMoveOffset);
+            const normalMoveDstIx = bitboards.toIndex(normalMoveDstVal);
             normalMoveAllowed = (normalMoveDstVal.val & occupied.val) == 0;
 
             if (normalMoveAllowed and !isFinalRank) {
@@ -85,8 +86,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
         // generate double moves; can't unless a normal move is also allowed, and starting from the starting square
         if (normalMoveAllowed and Movements.pawnDoubleMoveAllowed(sideToMove, pieceVal)) {
             const doubleMoveOffset = Movements.pawnDoubleMove(sideToMove);
-            const doubleMoveDstVal = pieceVal.getWithOffset(doubleMoveOffset);
-            const doubleMoveDstIx = doubleMoveDstVal.toIndex();
+            const doubleMoveDstVal = bitboards.getWithOffset(pieceVal, doubleMoveOffset);
+            const doubleMoveDstIx = bitboards.toIndex(doubleMoveDstVal);
             const doubleMoveAllowed = (doubleMoveDstVal.val & occupied.val) == 0;
 
             if (doubleMoveAllowed) {
@@ -103,8 +104,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (!captureOffset.isAllowedFrom(pieceVal))
                 continue;
             
-            const captureDstVal = pieceVal.getWithOffset(captureOffset);
-            const captureDstIx = captureDstVal.toIndex();
+            const captureDstVal = bitboards.getWithOffset(pieceVal, captureOffset);
+            const captureDstIx = bitboards.toIndex(captureDstVal);
             const captureAllowed = (captureDstVal.val & otherOccupied.val) != 0;
 
             if (captureAllowed and !isFinalRank) {
@@ -141,21 +142,21 @@ fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Positi
     var selfOccupied = position.getColorBb(position.sideToMove);
 
     var pieces = position.getPieceBb(position.sideToMove, pieceType);
-    var piecesIterator = pieces.getIterator();
+    var piecesIterator = bitboards.getSquareIterator(pieces);
     while (piecesIterator.next()) |pieceVal| {
-        var srcIx = pieceVal.toIndex();
+        var srcIx = bitboards.toIndex(pieceVal);
         for (Movements.byPieceType(pieceType)) |offset| {
             // skip if that jump isn't allowed from this position
             if (!offset.isAllowedFrom(pieceVal))
                 continue;
 
             // skip if trying to jump to our own piece
-            var dstVal = pieceVal.getWithOffset(offset);
+            var dstVal = bitboards.getWithOffset(pieceVal, offset);
             if ((dstVal.val & selfOccupied.val) != 0)
                 continue;
             
             var isCapture = (dstVal.val & position.occupied.val) != 0;
-            var dstIx = dstVal.toIndex();
+            var dstIx = bitboards.toIndex(dstVal);
 
             moveList.append(Move{ 
                 .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
@@ -170,9 +171,9 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
     var selfOccupied = position.getColorBb(position.sideToMove);
 
     var pieces = position.getPieceBb(position.sideToMove, pieceType);
-    var piecesIterator = pieces.getIterator();
+    var piecesIterator = bitboards.getSquareIterator(pieces);
     while (piecesIterator.next()) |pieceVal| {
-        var srcIx = pieceVal.toIndex();
+        var srcIx = bitboards.toIndex(pieceVal);
         for (Movements.byPieceType(pieceType)) |offset| {
             var dstVal = pieceVal;
             while (true) {
@@ -181,12 +182,12 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
                     break;
 
                 // skip if trying to jump to our own piece
-                dstVal = dstVal.getWithOffset(offset);
+                dstVal = bitboards.getWithOffset(dstVal, offset);
                 if ((dstVal.val & selfOccupied.val) != 0)
                     break;
                 
                 var isCapture = (dstVal.val & position.occupied.val) != 0;
-                var dstIx = dstVal.toIndex();
+                var dstIx = bitboards.toIndex(dstVal);
 
                 moveList.append(Move{ 
                     .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },

@@ -2,10 +2,11 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const Bitboard = df.types.Bitboard;
+const bitboards = df.bitboards;
 
 // piece masks
 
-pub const whiteKingsidePieceMask = Bitboard.fromStr(
+pub const whiteKingsidePieceMask = bitboards.fromStr(
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -16,7 +17,7 @@ pub const whiteKingsidePieceMask = Bitboard.fromStr(
     " . . . . O . . O   "
 );
 
-pub const whiteQueensidePieceMask = Bitboard.fromStr(
+pub const whiteQueensidePieceMask = bitboards.fromStr(
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -27,7 +28,7 @@ pub const whiteQueensidePieceMask = Bitboard.fromStr(
     " O . . . O . . .   "
 );
 
-pub const blackKingsidePieceMask = Bitboard.fromStr(
+pub const blackKingsidePieceMask = bitboards.fromStr(
     " . . . . O . . O / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -38,7 +39,7 @@ pub const blackKingsidePieceMask = Bitboard.fromStr(
     " . . . . . . . .   "
 );
 
-pub const blackQueensidePieceMask = Bitboard.fromStr(
+pub const blackQueensidePieceMask = bitboards.fromStr(
     " O . . . O . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -51,7 +52,7 @@ pub const blackQueensidePieceMask = Bitboard.fromStr(
 
 // clear masks
 
-pub const whiteKingsideClearMask = Bitboard.fromStr(
+pub const whiteKingsideClearMask = bitboards.fromStr(
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -62,7 +63,7 @@ pub const whiteKingsideClearMask = Bitboard.fromStr(
     " . . . . . O O .   "
 );
 
-pub const whiteQueensideClearMask = Bitboard.fromStr(
+pub const whiteQueensideClearMask = bitboards.fromStr(
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -73,7 +74,7 @@ pub const whiteQueensideClearMask = Bitboard.fromStr(
     " . O O O . . . .   "
 );
 
-pub const blackKingsideClearMask = Bitboard.fromStr(
+pub const blackKingsideClearMask = bitboards.fromStr(
     " . . . . . O O . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -84,7 +85,7 @@ pub const blackKingsideClearMask = Bitboard.fromStr(
     " . . . . . . . .   "
 );
 
-pub const blackQueensideClearMask = Bitboard.fromStr(
+pub const blackQueensideClearMask = bitboards.fromStr(
     " . O O O . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -97,7 +98,7 @@ pub const blackQueensideClearMask = Bitboard.fromStr(
 
 // passthrough squares
 
-pub const whiteKingsidePassthroughSquare = Bitboard.fromStr(
+pub const whiteKingsidePassthroughSquare = bitboards.fromStr(
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -108,7 +109,7 @@ pub const whiteKingsidePassthroughSquare = Bitboard.fromStr(
     " . . . . . O . .   "
 );
 
-pub const whiteQueensidePassthroughSquare = Bitboard.fromStr(
+pub const whiteQueensidePassthroughSquare = bitboards.fromStr(
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -119,7 +120,7 @@ pub const whiteQueensidePassthroughSquare = Bitboard.fromStr(
     " . . . O . . . .   "
 );
 
-pub const blackKingsidePassthroughSquare = Bitboard.fromStr(
+pub const blackKingsidePassthroughSquare = bitboards.fromStr(
     " . . . . . O . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++
@@ -130,7 +131,7 @@ pub const blackKingsidePassthroughSquare = Bitboard.fromStr(
     " . . . . . . . .   "
 );
 
-pub const blackQueensidePassthroughSquare = Bitboard.fromStr(
+pub const blackQueensidePassthroughSquare = bitboards.fromStr(
     " . . . O . . . . / " ++
     " . . . . . . . . / " ++
     " . . . . . . . . / " ++

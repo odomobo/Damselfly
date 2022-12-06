@@ -123,7 +123,7 @@ fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
                         bbY + offsY < 8
                     )
                     {
-                        curBitboard.setXY(bbX, bbY);
+                        bitboards.setXY(&curBitboard, bbX, bbY);
                     }
                 }
             }
@@ -158,7 +158,7 @@ test "Offset.getAllowedFromBb" {
 
     const r1AllowedBb = r1.getAllowedFromBb();
 
-    const r1ExpectedBb = df.types.Bitboard.fromStr(
+    const r1ExpectedBb = df.bitboards.fromStr(
         " . . . . . . . . / " ++
         " O O O O O O O O / " ++
         " O O O O O O O O / " ++
@@ -179,7 +179,7 @@ test "Offset.getAllowedFromBb" {
 
     const n1AllowedBb = n1.getAllowedFromBb();
 
-    const n1ExpectedBb = df.types.Bitboard.fromStr(
+    const n1ExpectedBb = df.bitboards.fromStr(
         " O O O O O O O . / " ++
         " O O O O O O O . / " ++
         " O O O O O O O . / " ++

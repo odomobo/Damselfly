@@ -2,6 +2,7 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const Bitboard = df.types.Bitboard;
+const bitboards = df.bitboards;
 const Position = df.types.Position;
 const Piece = df.types.Piece;
 const Move = df.types.Move;
@@ -12,7 +13,7 @@ pub const CanCastle = packed struct(u8) {
     const Self = @This();
 
     // TODO: remove these and use masks from tables.castling
-    const whiteKingsideMask = Bitboard.fromStr(
+    const whiteKingsideMask = bitboards.fromStr(
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++
@@ -23,7 +24,7 @@ pub const CanCastle = packed struct(u8) {
         " . . . . O . . O   "
     );
 
-    const whiteQueensideMask = Bitboard.fromStr(
+    const whiteQueensideMask = bitboards.fromStr(
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++
@@ -34,7 +35,7 @@ pub const CanCastle = packed struct(u8) {
         " O . . . O . . .   "
     );
 
-    const blackKingsideMask = Bitboard.fromStr(
+    const blackKingsideMask = bitboards.fromStr(
         " . . . . O . . O / " ++
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++
@@ -45,7 +46,7 @@ pub const CanCastle = packed struct(u8) {
         " . . . . . . . .   "
     );
 
-    const blackQueensideMask = Bitboard.fromStr(
+    const blackQueensideMask = bitboards.fromStr(
         " O . . . O . . . / " ++
         " . . . . . . . . / " ++
         " . . . . . . . . / " ++
@@ -117,8 +118,8 @@ pub const CanCastle = packed struct(u8) {
 
     pub fn updateCastlingFromMove(self: *Self, move: Move) void {
         var moveBb = Bitboard{ .val = 0 };
-        moveBb.setIndex(move.srcIndex);
-        moveBb.setIndex(move.dstIndex);
+        bitboards.setIndex(&moveBb, move.srcIndex);
+        bitboards.setIndex(&moveBb, move.dstIndex);
 
         if (moveBb.val & whiteKingsideMask.val != 0)
             self.whiteKingside = false;

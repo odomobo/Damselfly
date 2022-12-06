@@ -334,7 +334,7 @@ pub const Position = struct {
                 if (!offset.isAllowedFrom(currentSquare))
                     break;
                 
-                currentSquare = currentSquare.getWithOffset(offset);
+                currentSquare = bitboards.getWithOffset(currentSquare, offset);
                 if ((currentSquare.val & otherOccupied.val) != 0)
                 {
                     inline for (pieceTypes) |pieceType| {
@@ -382,12 +382,12 @@ pub const Position = struct {
         assert(pieceType != PieceType.None); // This isn't allowed; must only use clear instead.
         var color = piece.getColor();
 
-        self.occupied.setIndex(index);
+        bitboards.setIndex(&self.occupied, index);
 
         if (color == Color.White)
-            self.occupiedWhite.setIndex(index);
+            bitboards.setIndex(&self.occupiedWhite, index);
 
-        self.occupiedPieces[@enumToInt(pieceType)].setIndex(index);
+        bitboards.setIndex(&self.occupiedPieces[@enumToInt(pieceType)], index);
         self.squares[index] = piece;
     }
 
@@ -401,11 +401,11 @@ pub const Position = struct {
 
         assert(self.getIndexPiece(index).getPieceType() != PieceType.None);
 
-        self.occupied.clearIndex(index);
-        self.occupiedWhite.clearIndex(index);
+        bitboards.clearIndex(&self.occupied, index);
+        bitboards.clearIndex(&self.occupiedWhite, index);
         // TODO: maybe can make this more efficient
-        inline for (self.occupiedPieces) |*piece| {
-            piece.clearIndex(index);
+        inline for (self.occupiedPieces) |*square| {
+            bitboards.clearIndex(square, index);
         }
 
         self.squares[index] = Piece.None;

@@ -51,7 +51,7 @@ pub const Movements = struct {
         assert(bitboards.popCount(piece.val) == 1); // TODO: assertParanoid
 
         const allowedBb = switch (sideToMove) {
-            Color.White => Bitboard.fromStr(
+            Color.White => bitboards.fromStr(
                 " . . . . . . . . / " ++
                 " . . . . . . . . / " ++
                 " . . . . . . . . / " ++
@@ -61,7 +61,7 @@ pub const Movements = struct {
                 " O O O O O O O O / " ++
                 " . . . . . . . .   "
             ),
-            Color.Black => Bitboard.fromStr(
+            Color.Black => bitboards.fromStr(
                 " . . . . . . . . / " ++
                 " O O O O O O O O / " ++
                 " . . . . . . . . / " ++
@@ -79,7 +79,7 @@ pub const Movements = struct {
         assert(bitboards.popCount(piece.val) == 1); // TODO: assertParanoid
 
         const allowedBb = switch (sideToMove) {
-            Color.White => Bitboard.fromStr(
+            Color.White => bitboards.fromStr(
                 " . . . . . . . . / " ++
                 " O O O O O O O O / " ++
                 " . . . . . . . . / " ++
@@ -89,7 +89,7 @@ pub const Movements = struct {
                 " . . . . . . . . / " ++
                 " . . . . . . . .   "
             ),
-            Color.Black => Bitboard.fromStr(
+            Color.Black => bitboards.fromStr(
                 " . . . . . . . . / " ++
                 " . . . . . . . . / " ++
                 " . . . . . . . . / " ++
