@@ -6,10 +6,10 @@ pub const Piece = @import("types/Piece.zig").Piece;
 pub const Score = @import("types/Score.zig").Score;
 
 pub const Offset = @import("types/Offset.zig").Offset;
-pub const Bitboard = @import("types/Bitboard.zig").Bitboard;
 pub const Position = @import("types/Position.zig").Position;
 pub const Move = @import("types/Move.zig").Move;
 pub const CanCastle = @import("types/CanCastle.zig").CanCastle;
+pub const Bitboard = u64;
 pub const Index = u6;
 
 pub const MoveList = df.StaticArrayList(Move, 256);

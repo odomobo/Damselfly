@@ -63,7 +63,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
         if (normalMoveOffset.isAllowedFrom(pieceVal)) {
             const normalMoveDstVal = bitboards.getWithOffset(pieceVal, normalMoveOffset);
             const normalMoveDstIx = bitboards.toIndex(normalMoveDstVal);
-            normalMoveAllowed = (normalMoveDstVal.val & occupied.val) == 0;
+            normalMoveAllowed = normalMoveDstVal & occupied == 0;
 
             if (normalMoveAllowed and !isFinalRank) {
                 moveList.append(Move{ 
@@ -88,7 +88,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             const doubleMoveOffset = Movements.pawnDoubleMove(sideToMove);
             const doubleMoveDstVal = bitboards.getWithOffset(pieceVal, doubleMoveOffset);
             const doubleMoveDstIx = bitboards.toIndex(doubleMoveDstVal);
-            const doubleMoveAllowed = (doubleMoveDstVal.val & occupied.val) == 0;
+            const doubleMoveAllowed = doubleMoveDstVal & occupied == 0;
 
             if (doubleMoveAllowed) {
                 moveList.append(Move{ 
@@ -106,7 +106,7 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             
             const captureDstVal = bitboards.getWithOffset(pieceVal, captureOffset);
             const captureDstIx = bitboards.toIndex(captureDstVal);
-            const captureAllowed = (captureDstVal.val & otherOccupied.val) != 0;
+            const captureAllowed = captureDstVal & otherOccupied != 0;
 
             if (captureAllowed and !isFinalRank) {
                 moveList.append(Move{ 
@@ -152,10 +152,10 @@ fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Positi
 
             // skip if trying to jump to our own piece
             var dstVal = bitboards.getWithOffset(pieceVal, offset);
-            if ((dstVal.val & selfOccupied.val) != 0)
+            if (dstVal & selfOccupied != 0)
                 continue;
             
-            var isCapture = (dstVal.val & position.occupied.val) != 0;
+            var isCapture = dstVal & position.occupied != 0;
             var dstIx = bitboards.toIndex(dstVal);
 
             moveList.append(Move{ 
@@ -183,10 +183,10 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
 
                 // skip if trying to jump to our own piece
                 dstVal = bitboards.getWithOffset(dstVal, offset);
-                if ((dstVal.val & selfOccupied.val) != 0)
+                if (dstVal & selfOccupied != 0)
                     break;
                 
-                var isCapture = (dstVal.val & position.occupied.val) != 0;
+                var isCapture = dstVal & position.occupied != 0;
                 var dstIx = bitboards.toIndex(dstVal);
 
                 moveList.append(Move{ 
@@ -208,7 +208,7 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
         return;
     
     if (position.canCastle.whiteKingside and
-        (position.occupied.val & castling.whiteKingsideClearMask.val) == 0 and
+        position.occupied & castling.whiteKingsideClearMask == 0 and
         !position.isSquareAttacked(Color.White, castling.whiteKingsidePassthroughSquare)
     ) {
         moveList.append(Move{ 
@@ -219,7 +219,7 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     }
 
     if (position.canCastle.whiteQueenside and
-        (position.occupied.val & castling.whiteQueensideClearMask.val) == 0 and
+        position.occupied & castling.whiteQueensideClearMask == 0 and
         !position.isSquareAttacked(Color.White, castling.whiteQueensidePassthroughSquare)
     ) {
         moveList.append(Move{ 
@@ -235,7 +235,7 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
         return;
     
     if (position.canCastle.blackKingside and
-        (position.occupied.val & castling.blackKingsideClearMask.val) == 0 and
+        position.occupied & castling.blackKingsideClearMask == 0 and
         !position.isSquareAttacked(Color.Black, castling.blackKingsidePassthroughSquare)
     ) {
         moveList.append(Move{ 
@@ -246,7 +246,7 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     }
 
     if (position.canCastle.blackQueenside and
-        (position.occupied.val & castling.blackQueensideClearMask.val) == 0 and
+        position.occupied & castling.blackQueensideClearMask == 0 and
         !position.isSquareAttacked(Color.Black, castling.blackQueensidePassthroughSquare)
     ) {
         moveList.append(Move{ 

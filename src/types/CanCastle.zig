@@ -117,20 +117,20 @@ pub const CanCastle = packed struct(u8) {
     }
 
     pub fn updateCastlingFromMove(self: *Self, move: Move) void {
-        var moveBb = Bitboard{ .val = 0 };
+        var moveBb: Bitboard = 0;
         bitboards.setIndex(&moveBb, move.srcIndex);
         bitboards.setIndex(&moveBb, move.dstIndex);
 
-        if (moveBb.val & whiteKingsideMask.val != 0)
+        if (moveBb & whiteKingsideMask != 0)
             self.whiteKingside = false;
 
-        if (moveBb.val & whiteQueensideMask.val != 0)
+        if (moveBb & whiteQueensideMask != 0)
             self.whiteQueenside = false;
         
-        if (moveBb.val & blackKingsideMask.val != 0)
+        if (moveBb & blackKingsideMask != 0)
             self.blackKingside = false;
 
-        if (moveBb.val & blackQueensideMask.val != 0)
+        if (moveBb & blackQueensideMask != 0)
             self.blackQueenside = false;
     }
 

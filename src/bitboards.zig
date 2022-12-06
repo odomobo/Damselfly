@@ -4,6 +4,7 @@ const df = @import("damselfly.zig");
 const Index = df.types.Index;
 const indexes = df.indexes;
 const Bitboard = df.types.Bitboard;
+const bitboards = df.bitboards;
 const Offset = df.types.Offset;
 const assert = std.debug.assert;
 
@@ -115,19 +116,19 @@ pub fn indexIterator(value: u64) BitIndexIterator
 pub const BitboardPieceIterator = struct {
     const Self = @This();
 
-    val: u64,
+    bitboard: Bitboard,
 
     pub fn next(self: *Self) ?Bitboard
     {
-        if (self.val == 0)
+        if (self.bitboard == 0)
             return null;
         
-        return Bitboard{ .val = @as(u64, 1) << @intCast(u6, popLsb(&self.val)) };
+        return @as(Bitboard, 1) << @intCast(u6, popLsb(&self.bitboard));
     }
 };
 
-pub fn getSquareIterator(self: Bitboard) BitboardPieceIterator { // TODO: can the return type be made more anonymous?
-    return BitboardPieceIterator{ .val = self.val };
+pub fn getSquareIterator(bitboard: Bitboard) BitboardPieceIterator { // TODO: can the return type be made more anonymous?
+    return BitboardPieceIterator{ .bitboard = bitboard };
 }
 
 pub fn tryPopLsb(value: *u64) ?Index
@@ -146,7 +147,7 @@ const Point = struct {
 };
 
 pub fn fromStr(comptime str: []const u8) Bitboard {
-    var ret = Bitboard{ .val = 0 };
+    var ret: Bitboard = 0;
 
     var next = Point{ .x = 0, .y = 7 };
     
@@ -197,7 +198,7 @@ pub fn setXY(self: *Bitboard, x: isize, y: isize) void {
 
 pub fn setIndex(self: *Bitboard, index: Index) void {
     var bit = indexes.indexToBit(index);
-    self.val |= bit;
+    self.* |= bit;
 }
 
 pub fn clearXY(self: *Bitboard, x: isize, y: isize) void {
@@ -206,7 +207,7 @@ pub fn clearXY(self: *Bitboard, x: isize, y: isize) void {
 
 pub fn clearIndex(self: *Bitboard, index: Index) void {
     var bit = indexes.indexToBit(index);
-    self.val &= ~bit;
+    self.* &= ~bit;
 }
 
 pub fn hasBitXY(self: Bitboard, x: isize, y: isize) bool {
@@ -215,19 +216,20 @@ pub fn hasBitXY(self: Bitboard, x: isize, y: isize) bool {
 
 pub fn hasBitIndex(self: Bitboard, index: Index) bool {
     var bit = indexes.indexToBit(index);
-    return (self.val & bit) != 0;
+    return (self & bit) != 0;
 }
 
 pub fn toIndex(self: Bitboard) Index {
-    assert(popCount(self.val) == 1);
-    return bitToIndex(self.val);
+    assert(popCount(self) == 1);
+    return bitToIndex(self);
 }
 
 pub fn getWithOffset(self: Bitboard, offset: Offset) Bitboard {
+    assert(bitboards.popCount(self) == 1);
     if (offset.val >= 0) {
-        return Bitboard{ .val = @shlExact(self.val, @intCast(u6, offset.val))};
+        return @shlExact(self, @intCast(u6, offset.val));
     } else {
-        return Bitboard{ .val = @shrExact(self.val, @intCast(u6, -offset.val))};
+        return @shrExact(self, @intCast(u6, -offset.val));
     }
 }
 
@@ -323,7 +325,7 @@ test "bitboards.fromStr" {
         " O O O O O O O O   "
     );
     
-    try std.testing.expect(u64_1 == bitboard_1.val);
+    try std.testing.expect(u64_1 == bitboard_1);
 
     var u64_2: u64 = 0b00000000_00000000_00000000_00010000_00010000_00011110_00000010_00000010;
 
@@ -338,5 +340,5 @@ test "bitboards.fromStr" {
         " . O . . . . . .   "
     );
     
-    try std.testing.expect(u64_2 == bitboard_2.val);
+    try std.testing.expect(u64_2 == bitboard_2);
 }

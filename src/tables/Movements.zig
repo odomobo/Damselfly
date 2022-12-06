@@ -48,7 +48,7 @@ pub const Movements = struct {
     }
 
     pub fn pawnDoubleMoveAllowed(sideToMove: Color, piece: Bitboard) bool {
-        assert(bitboards.popCount(piece.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(piece) == 1); // TODO: assertParanoid
 
         const allowedBb = switch (sideToMove) {
             Color.White => bitboards.fromStr(
@@ -72,11 +72,11 @@ pub const Movements = struct {
                 " . . . . . . . .   "
             ),
         };
-        return (piece.val & allowedBb.val) != 0;
+        return piece & allowedBb != 0;
     }
 
     pub fn pawnIsFinalRank(sideToMove: Color, piece: Bitboard) bool {
-        assert(bitboards.popCount(piece.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(piece) == 1); // TODO: assertParanoid
 
         const allowedBb = switch (sideToMove) {
             Color.White => bitboards.fromStr(
@@ -100,7 +100,7 @@ pub const Movements = struct {
                 " . . . . . . . .   "
             ),
         };
-        return (piece.val & allowedBb.val) != 0;
+        return piece & allowedBb != 0;
     }
 
     pub fn pawnCaptures(sideToMove: Color) []const Offset {

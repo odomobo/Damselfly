@@ -37,9 +37,9 @@ pub const Position = struct {
     repetitionNumber: isize, // TODO: this depends on zobrist hash; 1 means this the first time it's been seen
 
     pub const empty = Self {
-        .occupied = Bitboard.empty,
-        .occupiedWhite = Bitboard.empty,
-        .occupiedPieces = [_]Bitboard{Bitboard.empty} ** 6,
+        .occupied = 0,
+        .occupiedWhite = 0,
+        .occupiedPieces = [_]Bitboard{0} ** 6,
         .inCheck = false,
         .squares = [_]Piece{Piece.None} ** 64,
         .parent = null,
@@ -103,10 +103,10 @@ pub const Position = struct {
             return Error.FenInvalid;
 
         // if not 1 white king and not 1 black king, then FEN is invalid
-        if (bitboards.popCount(ret.getPieceBb(Color.White, PieceType.King).val) != 1)
+        if (bitboards.popCount(ret.getPieceBb(Color.White, PieceType.King)) != 1)
             return Error.FenInvalid;
 
-        if (bitboards.popCount(ret.getPieceBb(Color.Black, PieceType.King).val) != 1)
+        if (bitboards.popCount(ret.getPieceBb(Color.Black, PieceType.King)) != 1)
             return Error.FenInvalid;
 
         var maybeSideToMove = splitFen.next();
@@ -287,18 +287,18 @@ pub const Position = struct {
 
     fn calculateInCheck(self: *Self) void {
         var kingVal = self.getPieceBb(self.sideToMove, PieceType.King);
-        assert(bitboards.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        assert(bitboards.popCount(kingVal) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
         self.inCheck = self.isSquareAttacked(self.sideToMove, kingVal);
     }
 
     pub fn isOtherKingInCheck(self: *const Self) bool {
         var kingVal = self.getPieceBb(self.sideToMove.other(), PieceType.King);
-        assert(bitboards.popCount(kingVal.val) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        assert(bitboards.popCount(kingVal) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
         return self.isSquareAttacked(self.sideToMove.other(), kingVal);
     }
 
     pub fn isSquareAttacked(self: *const Self, color: Color, square: Bitboard) bool {
-        assert(bitboards.popCount(square.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(square) == 1); // TODO: assertParanoid
 
         switch (color) {
             inline else => |comptimeColor| {
@@ -324,7 +324,7 @@ pub const Position = struct {
     }
 
     fn isSquareAttackedWithOffsetPieceSlider(self: *const Self, color: Color, square: Bitboard, comptime offsets: []const Offset, comptime pieceTypes: []const PieceType, comptime isSlider: bool) bool {
-        assert(bitboards.popCount(square.val) == 1); // TODO: assertParanoid
+        assert(bitboards.popCount(square) == 1); // TODO: assertParanoid
         const occupied = self.occupied;
         const otherOccupied = self.getColorBb(color.other());
 
@@ -335,10 +335,10 @@ pub const Position = struct {
                     break;
                 
                 currentSquare = bitboards.getWithOffset(currentSquare, offset);
-                if ((currentSquare.val & otherOccupied.val) != 0)
+                if (currentSquare & otherOccupied != 0)
                 {
                     inline for (pieceTypes) |pieceType| {
-                        if ((currentSquare.val & self.getPieceBb(color.other(), pieceType).val) != 0) {
+                        if (currentSquare & self.getPieceBb(color.other(), pieceType) != 0) {
                             return true;
                         }
                     }
@@ -348,7 +348,7 @@ pub const Position = struct {
                 }
 
                 // hit our own piece
-                if ((currentSquare.val & occupied.val) != 0)
+                if (currentSquare & occupied != 0)
                     break;
 
                 // this shouldn't be a loop if it's not a slider
@@ -414,16 +414,16 @@ pub const Position = struct {
     pub fn getPieceBb(self: *const Self, color: Color, pieceType: PieceType) Bitboard {
         assert(pieceType != PieceType.None);
         
-        var colorMask = if (color == Color.White) self.occupiedWhite.val else ~self.occupiedWhite.val;
+        var colorMask = if (color == Color.White) self.occupiedWhite else ~self.occupiedWhite;
 
-        return Bitboard{ .val = colorMask & self.occupiedPieces[@enumToInt(pieceType)].val };
+        return colorMask & self.occupiedPieces[@enumToInt(pieceType)];
     }
 
     pub fn getColorBb(self: *const Self, color: Color) Bitboard {
         if (color == Color.White) {
             return self.occupiedWhite; // this is always exactly the occupied pieces for white
         } else {
-            return Bitboard{ .val = ~self.occupiedWhite.val & self.occupied.val };
+            return ~self.occupiedWhite & self.occupied;
         }
     }
 
