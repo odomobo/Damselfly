@@ -1,4 +1,4 @@
-pub const movements = @import("tables/movements_.zig");
+pub const movements = @import("tables/movements.zig");
 pub const castling = @import("tables/castling.zig");
 
 // allows `zig build test` to work
