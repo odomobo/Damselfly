@@ -22,10 +22,9 @@ pub const Position = struct {
     };
 
     occupied: Bitboard,
-    occupiedWhite: Bitboard,
+    occupiedColors: [2]Bitboard,
     occupiedPieces: [6]Bitboard,
     inCheck: bool,
-    squares: [64]Piece, // TODO: get rid of this? need to benchmark I guess
     parent: ?*const Self,
     sideToMove: Color,
     enPassant: ?Index,
@@ -38,10 +37,9 @@ pub const Position = struct {
 
     pub const empty = Self {
         .occupied = 0,
-        .occupiedWhite = 0,
+        .occupiedColors = [_]Bitboard{0} ** 2,
         .occupiedPieces = [_]Bitboard{0} ** 6,
         .inCheck = false,
-        .squares = [_]Piece{Piece.None} ** 64,
         .parent = null,
         .sideToMove = Color.White,
         .enPassant = null,
@@ -208,7 +206,7 @@ pub const Position = struct {
     }
 
     fn movePiece(self: *Self, srcIndex: Index, dstIndex: Index) void {
-        var piece = self.squares[srcIndex];
+        var piece = self.getIndexPiece(srcIndex);
         assert(piece.getPieceType() != PieceType.None);
 
         self.clearIndex(srcIndex);
@@ -365,7 +363,37 @@ pub const Position = struct {
     }
 
     pub fn getIndexPiece(self: *const Self, index: Index) Piece {
-        return self.squares[index];
+        var square = indexes.indexToBit(index);
+        if (square & self.occupied == 0)
+            return Piece.None;
+        
+        var color: Color = undefined;
+        if (self.getColorBb(.White) & square != 0) {
+            color = .White;
+        } else if (self.getColorBb(.Black) & square != 0) {
+            color = .Black;
+        } else {
+            unreachable;
+        }
+
+        var pieceType: PieceType = undefined;
+        if (self.getPieceTypeBb(.Pawn) & square != 0) {
+            pieceType = .Pawn;
+        } else if (self.getPieceTypeBb(.Knight) & square != 0) {
+            pieceType = .Knight;
+        } else if (self.getPieceTypeBb(.Bishop) & square != 0) {
+            pieceType = .Bishop;
+        } else if (self.getPieceTypeBb(.Rook) & square != 0) {
+            pieceType = .Rook;
+        } else if (self.getPieceTypeBb(.Queen) & square != 0) {
+            pieceType = .Queen;
+        } else if (self.getPieceTypeBb(.King) & square != 0) {
+            pieceType = .King;
+        } else {
+            unreachable;
+        }
+
+        return Piece.init(color, pieceType);
     }
 
     pub fn setXYPiece(self: *Self, x: isize, y: isize, piece: Piece) void {
@@ -383,12 +411,8 @@ pub const Position = struct {
         var color = piece.getColor();
 
         bitboards.setIndex(&self.occupied, index);
-
-        if (color == Color.White)
-            bitboards.setIndex(&self.occupiedWhite, index);
-
+        bitboards.setIndex(&self.occupiedColors[@enumToInt(color)], index);
         bitboards.setIndex(&self.occupiedPieces[@enumToInt(pieceType)], index);
-        self.squares[index] = piece;
     }
 
     pub fn clearXY(self: *Self, x: isize, y: isize) void {
@@ -396,35 +420,30 @@ pub const Position = struct {
     }
 
     pub fn clearIndex(self: *Self, index: Index) void {
-        assert(index >= 0);
-        assert(index < 64);
-
         assert(self.getIndexPiece(index).getPieceType() != PieceType.None);
 
         bitboards.clearIndex(&self.occupied, index);
-        bitboards.clearIndex(&self.occupiedWhite, index);
         // TODO: maybe can make this more efficient
+        inline for (self.occupiedColors) |*square| {
+            bitboards.clearIndex(square, index);
+        }
         inline for (self.occupiedPieces) |*square| {
             bitboards.clearIndex(square, index);
         }
-
-        self.squares[index] = Piece.None;
     }
 
     pub fn getPieceBb(self: *const Self, color: Color, pieceType: PieceType) Bitboard {
         assert(pieceType != PieceType.None);
-        
-        var colorMask = if (color == Color.White) self.occupiedWhite else ~self.occupiedWhite;
+        return self.occupiedColors[@enumToInt(color)] & self.occupiedPieces[@enumToInt(pieceType)];
+    }
 
-        return colorMask & self.occupiedPieces[@enumToInt(pieceType)];
+    pub fn getPieceTypeBb(self: *const Self, pieceType: PieceType) Bitboard {
+        assert(pieceType != PieceType.None);
+        return self.occupiedPieces[@enumToInt(pieceType)];
     }
 
     pub fn getColorBb(self: *const Self, color: Color) Bitboard {
-        if (color == Color.White) {
-            return self.occupiedWhite; // this is always exactly the occupied pieces for white
-        } else {
-            return ~self.occupiedWhite & self.occupied;
-        }
+        return self.occupiedColors[@enumToInt(color)];
     }
 
     pub fn format(self: *const Self, comptime fmt: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
