@@ -286,15 +286,15 @@ pub const Position = struct {
     }
 
     fn calculateInCheck(self: *Self) void {
-        var kingVal = self.getPieceBb(self.sideToMove, PieceType.King);
-        assert(bitboards.popCount(kingVal) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
-        self.inCheck = self.isSquareAttacked(self.sideToMove, kingVal);
+        var kingSquare = self.getPieceBb(self.sideToMove, PieceType.King);
+        assert(bitboards.popCount(kingSquare) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        self.inCheck = self.isSquareAttacked(self.sideToMove, kingSquare);
     }
 
     pub fn isOtherKingInCheck(self: *const Self) bool {
-        var kingVal = self.getPieceBb(self.sideToMove.other(), PieceType.King);
-        assert(bitboards.popCount(kingVal) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
-        return self.isSquareAttacked(self.sideToMove.other(), kingVal);
+        var kingSquare = self.getPieceBb(self.sideToMove.other(), PieceType.King);
+        assert(bitboards.popCount(kingSquare) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
+        return self.isSquareAttacked(self.sideToMove.other(), kingSquare);
     }
 
     pub fn isSquareAttacked(self: *const Self, color: Color, square: Bitboard) bool {
