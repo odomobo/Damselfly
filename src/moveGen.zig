@@ -67,15 +67,15 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (normalMoveAllowed and !isFinalRank) {
                 moveList.append(Move{ 
                     .moveType = .{ .normal = true, .quiet = true },
-                    .srcIndex = @intCast(i8, srcIx),
-                    .dstIndex = @intCast(i8, normalMoveDstIx),
+                    .srcIndex = srcIx,
+                    .dstIndex = normalMoveDstIx,
                 });
             } else if (normalMoveAllowed and isFinalRank) {
                 for ([_]PieceType{PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop}) |pieceType| {
                     moveList.append(Move{ 
                         .moveType = .{ .promotion = true, .quiet = true },
-                        .srcIndex = @intCast(i8, srcIx),
-                        .dstIndex = @intCast(i8, normalMoveDstIx),
+                        .srcIndex = srcIx,
+                        .dstIndex = normalMoveDstIx,
                         .promotionPieceType = pieceType,
                     });
                 }
@@ -92,8 +92,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (doubleMoveAllowed) {
                 moveList.append(Move{ 
                     .moveType = .{ .doubleMove = true, .quiet = true },
-                    .srcIndex = @intCast(i8, srcIx),
-                    .dstIndex = @intCast(i8, doubleMoveDstIx),
+                    .srcIndex = srcIx,
+                    .dstIndex = doubleMoveDstIx,
                 });
             }
         }
@@ -110,15 +110,15 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (captureAllowed and !isFinalRank) {
                 moveList.append(Move{ 
                     .moveType = .{ .normal = true, .capture = true },
-                    .srcIndex = @intCast(i8, srcIx),
-                    .dstIndex = @intCast(i8, captureDstIx),
+                    .srcIndex = srcIx,
+                    .dstIndex = captureDstIx,
                 });
             } else if (captureAllowed and isFinalRank) {
                 for ([_]PieceType{PieceType.Queen, PieceType.Knight, PieceType.Rook, PieceType.Bishop}) |pieceType| {
                     moveList.append(Move{ 
                         .moveType = .{ .promotion = true, .capture = true },
-                        .srcIndex = @intCast(i8, srcIx),
-                        .dstIndex = @intCast(i8, captureDstIx),
+                        .srcIndex = srcIx,
+                        .dstIndex = captureDstIx,
                         .promotionPieceType = pieceType,
                     });
                 }
@@ -128,8 +128,8 @@ fn generatePawnMoves(comptime sideToMove: Color, position: *const Position, move
             if (captureDstIx == position.enPassant) {
                 moveList.append(Move{ 
                     .moveType = .{ .enPassant = true, .capture = true },
-                    .srcIndex = @intCast(i8, srcIx),
-                    .dstIndex = @intCast(i8, captureDstIx),
+                    .srcIndex = srcIx,
+                    .dstIndex = captureDstIx,
                 });
             }
         }
@@ -159,8 +159,8 @@ fn generateNonsliderMoves(comptime pieceType: PieceType, position: *const Positi
 
             moveList.append(Move{ 
                 .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
-                .srcIndex = @intCast(i8, srcIx),
-                .dstIndex = @intCast(i8, dstIx),
+                .srcIndex = srcIx,
+                .dstIndex = dstIx,
             });
         }
     }
@@ -190,8 +190,8 @@ fn generateSliderMoves(comptime pieceType: PieceType, position: *const Position,
 
                 moveList.append(Move{ 
                     .moveType = .{ .normal = true, .quiet = !isCapture, .capture = isCapture },
-                    .srcIndex = @intCast(i8, srcIx),
-                    .dstIndex = @intCast(i8, dstIx),
+                    .srcIndex = srcIx,
+                    .dstIndex = dstIx,
                 });
                 
                 // can't continue sliding forward after capture
@@ -212,8 +212,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = @intCast(i8, bits.strToIndex("e1")),
-            .dstIndex = @intCast(i8, bits.strToIndex("g1")),
+            .srcIndex = bits.strToIndex("e1"),
+            .dstIndex = bits.strToIndex("g1"),
         });
     }
 
@@ -223,8 +223,8 @@ fn generateWhiteCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = @intCast(i8, bits.strToIndex("e1")),
-            .dstIndex = @intCast(i8, bits.strToIndex("c1")),
+            .srcIndex = bits.strToIndex("e1"),
+            .dstIndex = bits.strToIndex("c1"),
         });
     }
 }
@@ -239,8 +239,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = @intCast(i8, bits.strToIndex("e8")),
-            .dstIndex = @intCast(i8, bits.strToIndex("g8")),
+            .srcIndex = bits.strToIndex("e8"),
+            .dstIndex = bits.strToIndex("g8"),
         });
     }
 
@@ -250,8 +250,8 @@ fn generateBlackCastlingMoves(position: *const Position, moveList: *MoveList) vo
     ) {
         moveList.append(Move{ 
             .moveType = .{ .castling = true, .quiet = true },
-            .srcIndex = @intCast(i8, bits.strToIndex("e8")),
-            .dstIndex = @intCast(i8, bits.strToIndex("c8")),
+            .srcIndex = bits.strToIndex("e8"),
+            .dstIndex = bits.strToIndex("c8"),
         });
     }
 }

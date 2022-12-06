@@ -3,6 +3,7 @@ const df = @import("../damselfly.zig");
 
 const bits = df.bits;
 const Offset = df.types.Offset;
+const Index = df.types.Index;
 const assert = std.debug.assert;
 
 const Point = struct {
@@ -67,7 +68,7 @@ pub const Bitboard = struct {
         self.setIndex(bits.xyToIndex(x, y));
     }
 
-    pub fn setIndex(self: *Self, index: isize) void {
+    pub fn setIndex(self: *Self, index: Index) void {
         var bit = bits.indexToBit(index);
         self.val |= bit;
     }
@@ -76,7 +77,7 @@ pub const Bitboard = struct {
         self.clearIndex(bits.xyToIndex(x, y));
     }
 
-    pub fn clearIndex(self: *Self, index: isize) void {
+    pub fn clearIndex(self: *Self, index: Index) void {
         var bit = bits.indexToBit(index);
         self.val &= ~bit;
     }
@@ -85,12 +86,12 @@ pub const Bitboard = struct {
         return self.hasBitIndex(bits.xyToIndex(x, y));
     }
 
-    pub fn hasBitIndex(self: Self, index: isize) bool {
+    pub fn hasBitIndex(self: Self, index: Index) bool {
         var bit = bits.indexToBit(index);
         return (self.val & bit) != 0;
     }
 
-    pub fn toIndex(self: Self) isize {
+    pub fn toIndex(self: Self) Index {
         assert(bits.popCount(self.val) == 1);
         return bits.bitToIndex(self.val);
     }

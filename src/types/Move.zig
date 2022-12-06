@@ -4,6 +4,7 @@ const df = @import("../damselfly.zig");
 const Piece = df.types.Piece;
 const PieceType = df.types.PieceType;
 const Color = df.types.Color;
+const Index = df.types.Index;
 const bits = df.bits;
 
 pub const Move = struct {
@@ -21,8 +22,8 @@ pub const Move = struct {
     };
 
     moveType: MoveType,
-    srcIndex: i8,
-    dstIndex: i8,
+    srcIndex: Index,
+    dstIndex: Index,
     promotionPieceType: PieceType = PieceType.None,
 
     // TODO: add a long format that includes captures, and shows castling differently... maybe???

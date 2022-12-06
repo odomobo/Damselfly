@@ -2,19 +2,23 @@ const std = @import("std");
 const df = @import("damselfly.zig");
 
 const Position = df.types.Position;
+const Index = df.types.Index;
 const assert = std.debug.assert;
 
-pub fn getLsb(value: u64) isize
+pub fn getLsb(value: u64) Index
 {
-    return @ctz(value);
+    // ctz returns a u7, which is only needed if there are 64 zeros. all other values can fit in a u6
+    assert(value != 0);
+    return @intCast(Index, @ctz(value));
 }
 
 pub fn removeLsb(value: u64) u64
 {
+    assert(value != 0);
     return value & (value - 1);
 }
 
-pub fn popLsb(value: *u64) isize
+pub fn popLsb(value: *u64) Index
 {
     var ret = getLsb(value.*);
     value.* = removeLsb(value.*);
@@ -26,23 +30,21 @@ pub fn popCount(value: u64) isize
     return @popCount(value);
 }
 
-pub fn bitToIndex(value: u64) isize
+pub fn bitToIndex(value: u64) Index
 {
     assert(popCount(value) == 1);
-    return @ctz(value);
+    return @intCast(Index, @ctz(value));
 }
 
-pub fn indexToBit(index: isize) u64
+pub fn indexToBit(index: Index) u64
 {
-    assert(index >= 0);
-    assert(index < 64);
-    return @shlExact(@as(u64, 1), @intCast(u6, index));
+    return @shlExact(@as(u64, 1), index);
 }
 
 pub const FormattableIndex = struct {
     const Self = @This();
 
-    val: ?isize,
+    val: ?Index,
 
     pub fn format(self: Self, comptime _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
     {
@@ -55,19 +57,19 @@ pub const FormattableIndex = struct {
     }
 };
 
-pub fn indexToFormattable(index: ?isize) FormattableIndex {
+pub fn indexToFormattable(index: ?Index) FormattableIndex {
     return FormattableIndex{.val = index};
 }
 
-pub fn xyToIndex(x: isize, y: isize) isize {
+pub fn xyToIndex(x: isize, y: isize) Index {
     assert(x >= 0);
     assert(x < 8);
     assert(y >= 0);
     assert(y < 8);
-    return x + (y*8);
+    return @intCast(Index, x + (y*8));
 }
 
-pub fn strToIndex(str: []const u8) isize {
+pub fn strToIndex(str: []const u8) Index {
     assert(str.len == 2);
     assert(str[0] >= 'a' and str[0] <= 'h');
     assert(str[1] >= '1' and str[1] <= '8');
@@ -77,7 +79,7 @@ pub fn strToIndex(str: []const u8) isize {
     return xyToIndex(file, rank);
 }
 
-pub fn tryStrToIndex(str: []const u8) Position.Error!isize {
+pub fn tryStrToIndex(str: []const u8) Position.Error!Index {
     if (str.len != 2)
         return Position.Error.FenInvalid;
 
@@ -95,10 +97,7 @@ pub const IndexToXYRet = struct {
     y: isize,
 };
 
-pub fn indexToXY(index: isize) IndexToXYRet {
-    assert(index >= 0);
-    assert(index < 64);
-    
+pub fn indexToXY(index: Index) IndexToXYRet {
     return IndexToXYRet{
         .x = @mod(index, 8),
         .y = @divFloor(index, 8),
@@ -164,7 +163,7 @@ pub const BitIndexIterator = struct {
 
     value: u64,
 
-    pub fn next(self: *Self) ?isize
+    pub fn next(self: *Self) ?Index
     {
         if (self.value == 0)
             return null;
@@ -188,7 +187,7 @@ pub const BitValueIterator = struct {
         if (self.value == 0)
             return null;
         
-        return @as(u64, 1) << @intCast(u6, popLsb(&self.value));
+        return @as(u64, 1) << popLsb(&self.value);
     }
 };
 
@@ -197,7 +196,7 @@ pub fn valueIterator(value: u64) BitValueIterator
     return BitValueIterator{.value = value};
 }
 
-pub fn tryPopLsb(value: *u64) ?isize
+pub fn tryPopLsb(value: *u64) ?Index
 {
     if (value.* == 0)
     {

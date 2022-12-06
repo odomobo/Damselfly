@@ -11,6 +11,7 @@ const PieceType = df.types.PieceType;
 const Color = df.types.Color;
 const bits = df.bits;
 const Movements = df.tables.Movements;
+const Index = df.types.Index;
 
 pub const Position = struct {
     const Self = @This();
@@ -26,7 +27,7 @@ pub const Position = struct {
     squares: [64]Piece, // TODO: get rid of this? need to benchmark I guess
     parent: ?*const Self,
     sideToMove: Color,
-    enPassant: ?isize,
+    enPassant: ?Index,
     canCastle: CanCastle, // TODO: include this when castling rights type is implemented
     fiftyMoveCounter: isize, // resets to 0 after pawn move or capture; this is in number of plies
     gamePly: isize, // game's ply, starting from 0
@@ -205,8 +206,8 @@ pub const Position = struct {
         return ret;
     }
 
-    fn movePiece(self: *Self, srcIndex: isize, dstIndex: isize) void {
-        var piece = self.squares[@intCast(usize, srcIndex)];
+    fn movePiece(self: *Self, srcIndex: Index, dstIndex: Index) void {
+        var piece = self.squares[srcIndex];
         assert(piece.getPieceType() != PieceType.None);
 
         self.clearIndex(srcIndex);
@@ -225,7 +226,7 @@ pub const Position = struct {
 
     fn makeDoublePawnMove(self: *Self, move: Move) void {
         self.movePiece(move.srcIndex, move.dstIndex); // TODO: could make more efficient by including pawn as the piece to move
-        self.enPassant = @divExact(move.srcIndex + move.dstIndex, 2);
+        self.enPassant = @intCast(Index, @divExact(@intCast(usize, move.srcIndex) + @intCast(usize, move.dstIndex), 2) );
         self.fiftyMoveCounter = 0;
     }
 
@@ -362,15 +363,15 @@ pub const Position = struct {
         return self.getIndexPiece(bits.xyToIndex(x, y));
     }
 
-    pub fn getIndexPiece(self: *const Self, index: isize) Piece {
-        return self.squares[@intCast(usize, index)];
+    pub fn getIndexPiece(self: *const Self, index: Index) Piece {
+        return self.squares[index];
     }
 
     pub fn setXYPiece(self: *Self, x: isize, y: isize, piece: Piece) void {
         self.setIndexPiece(bits.xyToIndex(x, y), piece);
     }
 
-    pub fn setIndexPiece(self: *Self, index: isize, piece: Piece) void {
+    pub fn setIndexPiece(self: *Self, index: Index, piece: Piece) void {
         assert(index >= 0);
         assert(index < 64);
 
@@ -386,14 +387,14 @@ pub const Position = struct {
             self.occupiedWhite.setIndex(index);
 
         self.occupiedPieces[@enumToInt(pieceType)].setIndex(index);
-        self.squares[@intCast(usize, index)] = piece;
+        self.squares[index] = piece;
     }
 
     pub fn clearXY(self: *Self, x: isize, y: isize) void {
         self.clearIndex(bits.xyToIndex(x, y));
     }
 
-    pub fn clearIndex(self: *Self, index: isize) void {
+    pub fn clearIndex(self: *Self, index: Index) void {
         assert(index >= 0);
         assert(index < 64);
 
@@ -406,7 +407,7 @@ pub const Position = struct {
             piece.clearIndex(index);
         }
 
-        self.squares[@intCast(usize, index)] = Piece.None;
+        self.squares[index] = Piece.None;
     }
 
     pub fn getPieceBb(self: *const Self, color: Color, pieceType: PieceType) Bitboard {
