@@ -2,6 +2,18 @@ const std = @import("std");
 const df = @import("damselfly");
 
 pub fn main() !void {
+    df.init(); // important that this is run first
+
+    try printZobristKeys();
+}
+
+fn printZobristKeys() !void {
+    for (df.tables.zobrist.zobristKeys) |key, i| {
+        std.debug.print("[{: >3}] : 0x{X:0>16}\n", .{i, key});
+    }
+}
+
+fn printBoards() !void {
     std.debug.print("## xxx ##\n", .{});
     var startingPosition = try df.types.Position.fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     std.debug.print("{short}\n", .{startingPosition});

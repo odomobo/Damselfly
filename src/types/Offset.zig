@@ -77,8 +77,8 @@ pub const Offset = struct {
     }
 
     pub fn getAllowedFromBb(self: Self) Bitboard {
-        var index = self.val - minAllowedFromOffset.val;
-        return allowedFromTable[@intCast(usize, index)];
+        var index = self.val - df.tables.offsets.minAllowedFromOffset.val;
+        return df.tables.offsets.allowedFromTable[@intCast(usize, index)];
     }
 
     pub fn isAllowedFrom(self: Self, bitboard: Bitboard) bool {
@@ -86,55 +86,6 @@ pub const Offset = struct {
         return self.getAllowedFromBb() & bitboard != 0;
     }
 };
-
-const allowedFromTable: [allowedFromTableSize]Bitboard = CreateAllowedFromTable();
-const maxAllowedFromCardinalDistance: isize = 2;
-const minAllowedFromOffset = Offset.fromXY(-maxAllowedFromCardinalDistance, -maxAllowedFromCardinalDistance);
-const maxAllowedFromOffset = Offset.fromXY(maxAllowedFromCardinalDistance, maxAllowedFromCardinalDistance);
-const allowedFromTableSize = maxAllowedFromOffset.val - minAllowedFromOffset.val + 1;
-
-fn CreateAllowedFromTable() [allowedFromTableSize]Bitboard {
-    // This is run at compile time.
-    // Just naively, 7*7 different offsets, calculated on 8*8 indexes each, is 3136.
-    // We need more than this because of branch overhead in setXY, which has like 6 branches?
-    @setEvalBranchQuota(7*7 * 8*8 * 10);
-    var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{0} ** allowedFromTableSize;
-
-    var offsY: isize = -maxAllowedFromCardinalDistance;
-    while(offsY <= maxAllowedFromCardinalDistance) : (offsY += 1)
-    {
-        var offsX: isize = -maxAllowedFromCardinalDistance;
-        while(offsX <= maxAllowedFromCardinalDistance) : (offsX += 1)
-        {
-            var curOffset = Offset.fromXY(offsX, offsY);
-            var curBitboard: Bitboard = 0;
-
-            var bbY: isize = 0;
-            while(bbY < 8) : (bbY += 1)
-            {
-                var bbX: isize = 0;
-                while(bbX < 8) : (bbX += 1)
-                {
-                    // if can safely jump by offset from current position, then it's safe and we set the bit
-                    if (
-                        bbX + offsX >= 0 and
-                        bbX + offsX < 8 and
-                        bbY + offsY >= 0 and
-                        bbY + offsY < 8
-                    )
-                    {
-                        bitboards.setXY(&curBitboard, bbX, bbY);
-                    }
-                }
-            }
-
-            var index = curOffset.val - minAllowedFromOffset.val;
-            ret[@intCast(usize, index)] = curBitboard;
-        }
-    }
-    
-    return comptime ret;
-}
 
 test "Offset.fromStr" {
     const n1 = Offset.fromStr(

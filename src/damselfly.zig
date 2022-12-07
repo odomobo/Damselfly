@@ -6,6 +6,12 @@ pub const moveGen = @import("moveGen.zig");
 pub const scores = @import("scores.zig");
 pub const debug = @import("debug.zig");
 pub const StaticArrayList = @import("StaticArrayList.zig").StaticArrayList;
+pub const constants = @import("constants.zig");
+pub const zobrist = @import("zobrist.zig");
+
+pub fn init() void {
+    tables.init();
+}
 
 // allows `zig build test` to work
 test {

@@ -11,8 +11,9 @@ pub const CanCastle = @import("types/CanCastle.zig").CanCastle;
 pub const Bitboard = u64;
 pub const Index = u6;
 pub const Score = i16;
+pub const ZobristHash = u64;
 
-pub const MoveList = df.StaticArrayList(Move, 256);
+pub const MoveList = df.StaticArrayList(Move, df.constants.maxNumberOfMoves);
 
 // allows `zig build test` to work
 test {

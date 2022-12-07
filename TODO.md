@@ -1,9 +1,10 @@
 # TODO
 
-* Repetitions.
+* Zobrist hash.
 * Search.
-* UCI interface.
+* Simple UCI interface.
+* Repetitions.
 * Separate search thread.
-* PV table.
+* triangular PV table.
 * Transposition table.
 * Complete the engine.

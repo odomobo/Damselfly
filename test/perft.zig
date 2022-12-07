@@ -4,7 +4,12 @@ const df = @import("damselfly");
 const Position = df.types.Position;
 const MoveList = df.types.MoveList;
 
+// TODO: set from parameter?
+var skipAmount: usize = 1;
+
 pub fn main() !void {
+    df.init(); // important that this is run first
+
     kiwipete();
     initialPos();
     position3();
@@ -12,18 +17,6 @@ pub fn main() !void {
     position4Mirrored();
     position5();
     position6();
-}
-
-fn initialPos() void {
-    std.debug.print("### initial position ###\n", .{});
-    const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    perft(fen, 0, 1);
-    perft(fen, 1, 20);
-    perft(fen, 2, 400);
-    perft(fen, 3, 8_902);
-    perft(fen, 4, 197_281);
-    perft(fen, 5, 4_865_609);
-    perft(fen, 6, 119_060_324);
 }
 
 fn kiwipete() void {
@@ -34,7 +27,21 @@ fn kiwipete() void {
     perft(fen, 2, 2039);
     perft(fen, 3, 97862);
     perft(fen, 4, 4085603);
-    perft(fen, 5, 193690690);
+    if (skipAmount < 1)
+        perft(fen, 5, 193690690);
+}
+
+fn initialPos() void {
+    std.debug.print("\n### initial position ###\n", .{});
+    const fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    perft(fen, 0, 1);
+    perft(fen, 1, 20);
+    perft(fen, 2, 400);
+    perft(fen, 3, 8_902);
+    perft(fen, 4, 197_281);
+    perft(fen, 5, 4_865_609);
+    if (skipAmount < 1)
+        perft(fen, 6, 119_060_324);
 }
 
 fn position3() void {
@@ -47,7 +54,8 @@ fn position3() void {
     perft(fen, 4, 43238);
     perft(fen, 5, 674624);
     perft(fen, 6, 11030083);
-    perft(fen, 7, 178633661);
+    if (skipAmount < 1)
+        perft(fen, 7, 178633661);
 }
 
 fn position4() void {
@@ -58,7 +66,8 @@ fn position4() void {
     perft(fen, 2, 264);
     perft(fen, 3, 9467);
     perft(fen, 4, 422333);
-    perft(fen, 5, 15833292);
+    if (skipAmount < 1)
+        perft(fen, 5, 15833292);
 }
 
 fn position4Mirrored() void {
@@ -69,7 +78,8 @@ fn position4Mirrored() void {
     perft(fen, 2, 264);
     perft(fen, 3, 9467);
     perft(fen, 4, 422333);
-    perft(fen, 5, 15833292);
+    if (skipAmount < 1)
+        perft(fen, 5, 15833292);
 }
 
 fn position5() void {
@@ -80,7 +90,8 @@ fn position5() void {
     perft(fen, 2, 1486);
     perft(fen, 3, 62379);
     perft(fen, 4, 2103487);
-    perft(fen, 5, 89941194);
+    if (skipAmount < 1)
+        perft(fen, 5, 89941194);
 }
 
 fn position6() void {
@@ -91,7 +102,8 @@ fn position6() void {
     perft(fen, 2, 2079);
     perft(fen, 3, 89890);
     perft(fen, 4, 3894594);
-    perft(fen, 5, 164075551);
+    if (skipAmount < 1)
+        perft(fen, 5, 164075551);
 }
 
 fn perft(fen: []const u8, depth: usize, expectedNodes: usize) void {
