@@ -4,7 +4,7 @@ const df = @import("../damselfly.zig");
 const ZobristHash = df.types.ZobristHash;
 
 pub fn init() void {
-    zobristKeys = generateZobristKeys();
+    zobristKeysInner = generateZobristKeys();
 }
 
 // Zobrist keys are ordered as follows:
@@ -14,7 +14,9 @@ pub fn init() void {
 // [384..399] Next, all en passant squares, in order of a3 to h3, followed by a6 thorugh h6
 // [400..404] Next, all castling keys: white kingside, white queenside, black kingside, black queenside in that order
 // [405] Finally, the white-to-move key
-pub var zobristKeys = [_]ZobristHash{0} ** zobristKeysSize;
+pub var zobristKeysInner = [_]ZobristHash{0} ** zobristKeysSize;
+// TODO: get rid of this once zig compiler issue is fixed
+pub const zobristKeys = &zobristKeysInner;
 
 const zobristKeysSize = 406;
 fn generateZobristKeys() [zobristKeysSize]ZobristHash {

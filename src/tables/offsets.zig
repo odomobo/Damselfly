@@ -6,18 +6,20 @@ const Offset = df.types.Offset;
 const bitboards = df.bitboards;
 
 pub fn init() void {
-    allowedFromTable = createAllowedFromTable();
+    allowedFromTableInner = createAllowedFromTable();
 }
 
 // don't touch this; initialized at startup
-pub var allowedFromTable = [_]Bitboard{0} ** allowedFromTableSize;
+pub var allowedFromTableInner = [_]Bitboard{0} ** allowedFromTableSize;
+// TODO: get rid of this once zig compiler issue is fixed
+pub const allowedFromTable = &allowedFromTableInner;
 pub const maxAllowedFromCardinalDistance: isize = 2;
 pub const minAllowedFromOffset = Offset.fromXY(-maxAllowedFromCardinalDistance, -maxAllowedFromCardinalDistance);
 pub const maxAllowedFromOffset = Offset.fromXY(maxAllowedFromCardinalDistance, maxAllowedFromCardinalDistance);
 pub const allowedFromTableSize = maxAllowedFromOffset.val - minAllowedFromOffset.val + 1;
 
 fn createAllowedFromTable() [allowedFromTableSize]Bitboard {
-    var ret: [allowedFromTableSize]Bitboard = [_]Bitboard{0} ** allowedFromTableSize;
+    var ret = [_]Bitboard{0} ** allowedFromTableSize;
 
     var offsY: isize = -maxAllowedFromCardinalDistance;
     while(offsY <= maxAllowedFromCardinalDistance) : (offsY += 1)

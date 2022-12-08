@@ -6,10 +6,12 @@ const MoveList = df.types.MoveList;
 
 // TODO: set from parameter?
 var skipAmount: usize = 1;
+var totalNodes: u64 = 0;
 
 pub fn main() !void {
     df.init(); // important that this is run first
-
+    const startTime = std.time.milliTimestamp();
+    
     kiwipete();
     initialPos();
     position3();
@@ -17,6 +19,10 @@ pub fn main() !void {
     position4Mirrored();
     position5();
     position6();
+
+    const endTime = std.time.milliTimestamp();
+    const elapsedTime = @intToFloat(f64, endTime - startTime + 1);
+    std.debug.print("\nSearched {} total nodes in {d:.3} seconds, at {d:.3}KNPS\n", .{totalNodes, elapsedTime/1000.0, @intToFloat(f64, totalNodes)/elapsedTime});
 }
 
 fn kiwipete() void {
@@ -27,6 +33,7 @@ fn kiwipete() void {
     perft(fen, 2, 2039);
     perft(fen, 3, 97862);
     perft(fen, 4, 4085603);
+
     if (skipAmount < 1)
         perft(fen, 5, 193690690);
 }
@@ -111,6 +118,8 @@ fn perft(fen: []const u8, depth: usize, expectedNodes: usize) void {
     std.debug.print("{s} | depth {} | ", .{fen, depth});
 
     const foundNodes = innerPerft(&position, depth);
+    totalNodes += foundNodes;
+
     if (expectedNodes == foundNodes) {
         std.debug.print("Passed; expected {} and found {} nodes\n", .{expectedNodes, foundNodes});
     } else {
