@@ -2,6 +2,8 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
+const eql = std.meta.eql;
+
 const Bitboard = df.types.Bitboard;
 const CanCastle = df.types.CanCastle;
 const Offset = df.types.Offset;
@@ -205,7 +207,7 @@ pub const Position = struct {
         // TODO: update 50 move rule
 
         // if the castling rights have changed, then the move wasn't reversible
-        if (ret.canCastle.neql(parent.canCastle)) {
+        if (!eql(ret.canCastle, parent.canCastle)) {
             ret.lastMoveWasReversible = false;
         }
 

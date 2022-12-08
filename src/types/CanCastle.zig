@@ -1,6 +1,9 @@
 const std = @import("std");
 const df = @import("../damselfly.zig");
 
+const assert = std.debug.assert;
+const eql = std.meta.eql;
+
 const Bitboard = df.types.Bitboard;
 const bitboards = df.bitboards;
 const Position = df.types.Position;
@@ -8,7 +11,6 @@ const Piece = df.types.Piece;
 const Move = df.types.Move;
 const indexes = df.indexes;
 const castling = df.tables.castling;
-const assert = std.debug.assert;
 
 pub const CanCastle = packed struct(u8) {
     const Self = @This();
@@ -45,42 +47,30 @@ pub const CanCastle = packed struct(u8) {
         return ret;
     }
 
-    pub fn eql(self: CanCastle, other: CanCastle) bool {
-        return 
-            self.whiteKingside == other.whiteKingside and
-            self.whiteQueenside == other.whiteQueenside and
-            self.blackKingside == other.blackKingside and
-            self.blackQueenside == other.blackQueenside;
-    }
-
-    pub fn neql(self: CanCastle, other: CanCastle) bool {
-        return !self.eql(other);
-    }
-
     pub fn fixCastlingFromPosition(self: *Self, pos: *Position) void {
-        if (pos.getIndexPiece(indexes.strToIndex("e1")).neql(Piece.WhiteKing))
+        if (!eql(pos.getIndexPiece(indexes.strToIndex("e1")), Piece.WhiteKing))
         {
             self.whiteKingside = false;
             self.whiteQueenside = false;
         }
 
-        if (pos.getIndexPiece(indexes.strToIndex("h1")).neql(Piece.WhiteRook))
+        if (!eql(pos.getIndexPiece(indexes.strToIndex("h1")), Piece.WhiteRook))
             self.whiteKingside = false;
 
-        if (pos.getIndexPiece(indexes.strToIndex("a1")).neql(Piece.WhiteRook))
+        if (!eql(pos.getIndexPiece(indexes.strToIndex("a1")), Piece.WhiteRook))
             self.whiteQueenside = false;
 
 
-        if (pos.getIndexPiece(indexes.strToIndex("e8")).neql(Piece.BlackKing))
+        if (!eql(pos.getIndexPiece(indexes.strToIndex("e8")), Piece.BlackKing))
         {
             self.blackKingside = false;
             self.blackQueenside = false;
         }
 
-        if (pos.getIndexPiece(indexes.strToIndex("h8")).neql(Piece.BlackRook))
+        if (!eql(pos.getIndexPiece(indexes.strToIndex("h8")), Piece.BlackRook))
             self.blackKingside = false;
 
-        if (pos.getIndexPiece(indexes.strToIndex("a8")).neql(Piece.BlackRook))
+        if (!eql(pos.getIndexPiece(indexes.strToIndex("a8")), Piece.BlackRook))
             self.blackQueenside = false;
     }
 

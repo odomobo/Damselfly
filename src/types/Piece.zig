@@ -55,14 +55,6 @@ pub const Piece = packed struct(u8) {
         return self.pieceType;
     }
 
-    pub fn eql(self: Self, other: Self) bool {
-        return self.pieceType == other.pieceType and self.color == other.color;
-    }
-
-    pub fn neql(self: Self, other: Self) bool {
-        return !self.eql(other);
-    }
-
     pub fn deconstruct(self: Self, color: *Color, pieceType: *PieceType) void {
         color.* = self.getColor();
         pieceType.* = self.getPieceType();
@@ -116,38 +108,6 @@ pub const Piece = packed struct(u8) {
 };
 
 // tests
-
-test "Piece.eql" {
-    var k = Piece.init(Color.Black, PieceType.King);
-    var K = Piece.init(Color.White, PieceType.King);
-    var b = Piece.init(Color.Black, PieceType.Bishop);
-    var none = Piece.None;
-
-    try std.testing.expect(k.eql(k));
-    try std.testing.expect(none.eql(none));
-    try std.testing.expect(!k.eql(K));
-    try std.testing.expect(!k.eql(b));
-    try std.testing.expect(!k.eql(none));
-    try std.testing.expect(!K.eql(k));
-    try std.testing.expect(!b.eql(k));
-    try std.testing.expect(!none.eql(k));
-}
-
-test "Piece.neql" {
-    var k = Piece.init(Color.Black, PieceType.King);
-    var K = Piece.init(Color.White, PieceType.King);
-    var b = Piece.init(Color.Black, PieceType.Bishop);
-    var none = Piece.None;
-
-    try std.testing.expect(!k.neql(k));
-    try std.testing.expect(!none.neql(none));
-    try std.testing.expect(k.neql(K));
-    try std.testing.expect(k.neql(b));
-    try std.testing.expect(k.neql(none));
-    try std.testing.expect(K.neql(k));
-    try std.testing.expect(b.neql(k));
-    try std.testing.expect(none.neql(k));
-}
 
 test "Piece.getColor" {
     var k = Piece.init(Color.Black, PieceType.King);

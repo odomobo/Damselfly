@@ -15,5 +15,7 @@ pub fn init() void {
 
 // allows `zig build test` to work
 test {
+    tables.init(); // it's important this is called here before any tests are run
+
     @import("std").testing.refAllDecls(@This());
 }
