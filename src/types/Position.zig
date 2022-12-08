@@ -564,5 +564,4 @@ pub const Position = struct {
             @compileError("format type for Piece must be \"full\" or \"fen\" for now...");
         }
     }
-
 };

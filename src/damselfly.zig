@@ -11,19 +11,21 @@ pub const StaticArrayList = @import("StaticArrayList.zig").StaticArrayList;
 pub const constants = @import("constants.zig");
 pub const zobrist = @import("zobrist.zig");
 
-// this will probably cause a compiler crash once we try to use compile options within tests
-pub const compileOptions =
-    if (@import("builtin").is_test)
-        types.CompileOptions{
+pub const compileOptions = getCompileOptions();
+
+// Set configuration depending on if we're building test, or there's a compileOptions set in the root file, finally defaulting to the default configuration.
+fn getCompileOptions() types.CompileOptions {
+    if (@import("builtin").is_test) {
+        return types.CompileOptions{
             .configuration = "test",
             .paranoid = true,
-        }
-    else if (@hasDecl(@import("root"), "compileOptions")) 
-        @import("root").compileOptions 
-    else 
-        types.CompileOptions{}
-;
-
+        };
+    } else if (@hasDecl(@import("root"), "compileOptions")) {
+        return @import("root").compileOptions;
+    } else {
+        return types.CompileOptions{};
+    }
+}
 pub var allocator: std.mem.Allocator = undefined;
 
 pub fn init(alloc: std.mem.Allocator) void {
