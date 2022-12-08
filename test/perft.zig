@@ -9,7 +9,10 @@ var skipAmount: usize = 1;
 var totalNodes: u64 = 0;
 
 pub fn main() !void {
-    df.init(); // important that this is run first
+    var gpa = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 20 }){};
+    defer _ = gpa.deinit();
+    df.init(gpa.allocator()); // important that this is run first
+
     const startTime = std.time.milliTimestamp();
     
     kiwipete();
@@ -129,8 +132,9 @@ fn perft(fen: []const u8, depth: usize, expectedNodes: usize) void {
 }
 
 fn innerPerft(position: *const Position, depth: usize) usize {
-    if (depth == 0)
+    if (depth == 0) {
         return 1;
+    }
     
     var count: usize = 0;
 

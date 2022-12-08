@@ -1,8 +1,16 @@
 const std = @import("std");
 const df = @import("damselfly");
 
+pub const compileOptions = df.types.CompileOptions{
+    .configuration = "xxx",
+    .paranoid = true,
+};
+
 pub fn main() !void {
-    df.init(); // important that this is run first
+    var gpa = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 20 }){};
+    defer _ = gpa.deinit();
+    df.init(gpa.allocator()); // important that this is run first
+    df.compileOptions.print();
 
     //try printZobristKeys();
     try printBoards();

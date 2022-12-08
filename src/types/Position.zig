@@ -2,6 +2,8 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
+const assertDebug = df.debug.assertDebug;
+const assertParanoid = df.debug.assertParanoid;
 const eql = std.meta.eql;
 
 const Bitboard = df.types.Bitboard;
@@ -312,7 +314,7 @@ pub const Position = struct {
     }
 
     pub fn isSquareAttacked(self: *const Self, color: Color, square: Bitboard) bool {
-        assert(bitboards.popCount(square) == 1); // TODO: assertParanoid
+        assertDebug(bitboards.popCount(square) == 1);
 
         switch (color) {
             inline else => |comptimeColor| {
@@ -338,7 +340,7 @@ pub const Position = struct {
     }
 
     fn isSquareAttackedWithOffsetPieceSlider(self: *const Self, color: Color, square: Bitboard, comptime offsets: []const Offset, comptime pieceTypes: []const PieceType, comptime isSlider: bool) bool {
-        assert(bitboards.popCount(square) == 1); // TODO: assertParanoid
+        assertDebug(bitboards.popCount(square) == 1);
         const occupied = self.occupied;
         const otherOccupied = self.getColorBb(color.other());
 

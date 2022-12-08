@@ -2,6 +2,9 @@ const std = @import("std");
 const df = @import("../damselfly.zig");
 
 const assert = std.debug.assert;
+const assertDebug = df.debug.assertDebug;
+const assertParanoid = df.debug.assertParanoid;
+
 const Offset = df.types.Offset;
 const StaticArrayList = df.StaticArrayList;
 const PieceType = df.types.PieceType;
@@ -47,7 +50,7 @@ pub fn pawnDoubleMove(sideToMove: Color) Offset {
 }
 
 pub fn pawnIsDoubleMoveAllowed(sideToMove: Color, square: Bitboard) bool {
-    assert(bitboards.popCount(square) == 1); // TODO: assertParanoid
+    assertDebug(bitboards.popCount(square) == 1);
 
     const allowedBb = switch (sideToMove) {
         Color.White => bitboards.fromStr(
@@ -75,7 +78,7 @@ pub fn pawnIsDoubleMoveAllowed(sideToMove: Color, square: Bitboard) bool {
 }
 
 pub fn pawnIsFinalRank(sideToMove: Color, square: Bitboard) bool {
-    assert(bitboards.popCount(square) == 1); // TODO: assertParanoid
+    assertDebug(bitboards.popCount(square) == 1);
 
     const allowedBb = switch (sideToMove) {
         Color.White => bitboards.fromStr(
