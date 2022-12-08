@@ -136,3 +136,90 @@ fn generateZobristKeys() [zobristKeysSize]ZobristHash {
 
     return ret;
 }
+
+test "getZobristHashForPosition() uniqueness" {
+    // just verify that duplicates get removed
+    {
+        var duplicates = std.hash_map.AutoHashMap(ZobristHash, void).init(std.testing.allocator);
+        defer duplicates.deinit();
+
+        try duplicates.put(10, {});
+        try duplicates.put(10, {});
+        try std.testing.expect(duplicates.count() == 1);
+    }
+
+    // verify that every key is unique
+    {
+        var hashKeys = std.hash_map.AutoHashMap(ZobristHash, void).init(std.testing.allocator);
+        defer hashKeys.deinit();
+
+        var addedCount: usize = 0;
+
+        for ([_]Color{.White, .Black}) |color| {
+            for ([_]PieceType{.Pawn, .Knight, .Bishop, .Rook, .Queen, .King}) |pieceType| {
+                var i: usize = 0;
+                while (i < 64) : (i += 1) {
+                    const index = @intCast(Index, i);
+                    try hashKeys.put(getZobristKeyColorPieceTypeIndex(color, pieceType, index), {});
+                    addedCount += 1;
+                }
+            }
+        }
+
+        var index = indexes.strToIndex("a3");
+        while (index <= indexes.strToIndex("h3")) : (index += 1) {
+            try hashKeys.put(getZobristKeyEnPassant(index), {});
+            addedCount += 1;
+        }
+
+        index = indexes.strToIndex("a6");
+        while (index <= indexes.strToIndex("h6")) : (index += 1) {
+            try hashKeys.put(getZobristKeyEnPassant(index), {});
+            addedCount += 1;
+        }
+
+        try hashKeys.put(getZobristKeyCastlingWhiteKingside(), {});
+        addedCount += 1;
+        try hashKeys.put(getZobristKeyCastlingWhiteQueenside(), {});
+        addedCount += 1;
+        try hashKeys.put(getZobristKeyCastlingBlackKingside(), {});
+        addedCount += 1;
+        try hashKeys.put(getZobristKeyCastlingBlackQueenside(), {});
+        addedCount += 1;
+
+        try hashKeys.put(getZobristKeyBlackToMove(), {});
+        addedCount += 1;
+
+        // this proves that all keys returned from the various methods are all unique
+        try std.testing.expect(hashKeys.count() == zobristKeys.len);
+        try std.testing.expect(hashKeys.count() == addedCount);
+    }
+}
+
+test "getZobristHashForPosition() differentiates different positions" {
+    var kiwipete = try Position.fromFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
+
+    var withMissingA1Rook = kiwipete;
+    withMissingA1Rook.clearIndex(indexes.strToIndex("a1"));
+    withMissingA1Rook.zobristHash = getZobristHashForPosition(&withMissingA1Rook);
+
+    try std.testing.expect(kiwipete.zobristHash != withMissingA1Rook.zobristHash);
+
+    var withEnPassant = kiwipete;
+    withEnPassant.enPassant = indexes.strToIndex("e3");
+    withEnPassant.zobristHash = getZobristHashForPosition(&withEnPassant);
+
+    try std.testing.expect(kiwipete.zobristHash != withEnPassant.zobristHash);
+
+    var withMissingCastlingRights = kiwipete;
+    withMissingCastlingRights.canCastle.whiteKingside = false;
+    withMissingCastlingRights.zobristHash = getZobristHashForPosition(&withMissingCastlingRights);
+
+    try std.testing.expect(kiwipete.zobristHash != withMissingCastlingRights.zobristHash);
+
+    var withBlackToMove = kiwipete;
+    withBlackToMove.sideToMove = .Black;
+    withBlackToMove.zobristHash = getZobristHashForPosition(&withBlackToMove);
+
+    try std.testing.expect(kiwipete.zobristHash != withBlackToMove.zobristHash);
+}
