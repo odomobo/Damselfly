@@ -15,6 +15,7 @@ const indexes = df.indexes;
 const bitboards = df.bitboards;
 const movements = df.tables.movements;
 const Index = df.types.Index;
+const ZobristHash = df.types.ZobristHash;
 
 pub const Position = struct {
     const Self = @This();
@@ -30,11 +31,10 @@ pub const Position = struct {
     parent: ?*const Self,
     sideToMove: Color,
     enPassant: ?Index,
-    canCastle: CanCastle, // TODO: include this when castling rights type is implemented
+    canCastle: CanCastle,
     fiftyMoveCounter: isize, // resets to 0 after pawn move or capture; this is in number of plies
     gamePly: isize, // game's ply, starting from 0
-    historyPly: isize, // similar to game ply, but from the position we started from, not from the initial position in the game
-    // zobristHash: ZobristHash, // TODO: include this when zobrist hash type is implemented
+    zobristHash: ZobristHash,
     lastMoveWasReversible: bool,
 
     pub const empty = Self {
@@ -48,7 +48,7 @@ pub const Position = struct {
         .canCastle = CanCastle{.whiteKingside = false, .whiteQueenside = false, .blackKingside = false, .blackQueenside = false},
         .fiftyMoveCounter = 0,
         .gamePly = 0,
-        .historyPly = 0,
+        .zobristHash = 0,
         .lastMoveWasReversible = false,
     };
 
@@ -161,6 +161,8 @@ pub const Position = struct {
 
         ret.calculateInCheck();
 
+        ret.zobristHash = df.tables.zobrist.getZobristHashForPosition(&ret);
+
         return ret;
     }
 
@@ -171,7 +173,6 @@ pub const Position = struct {
         ret.enPassant = null;
         ret.fiftyMoveCounter += 1;
         ret.gamePly += 1;
-        ret.historyPly += 1;
         ret.lastMoveWasReversible = false; // all the special cases are non-reversible; only normal quiet moves are reversible
 
         var moveType = move.moveType;
@@ -197,19 +198,24 @@ pub const Position = struct {
         }
 
         ret.canCastle.updateCastlingFromMove(move);
-        // swap side to move after making the move
+
+        // swap side to move only _after_ making the move
         ret.sideToMove = parent.sideToMove.other();
 
-        // TODO: zobrist hash
+        // this depends on move being made, side-to-move being updated, castling being updated, and en passant square being set
+        // TODO: maybe incremental update?
+        ret.zobristHash = df.tables.zobrist.getZobristHashForPosition(&ret);
 
         // TODO: calculate repetition number
-
-        // TODO: update 50 move rule
 
         // if the castling rights have changed, then the move wasn't reversible
         if (!eql(ret.canCastle, parent.canCastle)) {
             ret.lastMoveWasReversible = false;
         }
+
+        // reset 50 move rule on capture or pawn move, which is slightly different from non-reversible moves
+        if (move.capture or move.pieceType == .Pawn)
+            ret.fiftyMoveCounter = 0;
 
         ret.calculateInCheck();
 
@@ -472,6 +478,7 @@ pub const Position = struct {
                 try writer.print("In check.\n", .{});
             try writer.print("Castling rights: {}\n", .{self.canCastle});
             try writer.print("En passant square: {}\n", .{indexes.indexToFormattable(self.enPassant)});
+            try writer.print("Zobrist Hash: 0x{X:0>16}\n", .{self.zobristHash});
         }
         else 
         {

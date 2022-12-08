@@ -4,7 +4,8 @@ const df = @import("damselfly");
 pub fn main() !void {
     df.init(); // important that this is run first
 
-    try printZobristKeys();
+    //try printZobristKeys();
+    try printBoards();
 }
 
 fn printZobristKeys() !void {
