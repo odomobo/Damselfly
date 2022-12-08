@@ -127,7 +127,7 @@ fn perft(fen: []const u8, depth: usize, expectedNodes: usize) void {
         std.debug.print("Passed; expected {} and found {} nodes\n", .{expectedNodes, foundNodes});
     } else {
         std.debug.print("!!! Failed; expected {} but found {} nodes !!! See position below\n\n", .{expectedNodes, foundNodes});
-        std.debug.print("{short}\n", .{position});
+        std.debug.print("{full}\n", .{position});
     }
 }
 

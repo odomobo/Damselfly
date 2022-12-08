@@ -24,8 +24,8 @@ fn printZobristKeys() !void {
 
 fn printBoards() !void {
     std.debug.print("## xxx ##\n", .{});
-    var startingPosition = try df.types.Position.fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    std.debug.print("{short}\n", .{startingPosition});
+    var startingPosition = try df.types.Position.fromFen(" rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    std.debug.print("{full}\n", .{startingPosition});
 
     var moveList = df.types.MoveList{};
     df.moveGen.generateMoves(&startingPosition, &moveList);
@@ -34,9 +34,9 @@ fn printBoards() !void {
     }
     std.debug.print("\n\n", .{});
 
-    if (moveList.getItems().len > 3) {
-        var pos3 = startingPosition.makeFromMove(moveList.getItems()[3]);
-        std.debug.print("{short}\n", .{pos3});
+    if (moveList.getItems().len > 16) {
+        var pos3 = startingPosition.makeFromMove(moveList.getItems()[16]);
+        std.debug.print("{full}\n", .{pos3});
 
         var moveList2 = df.types.MoveList{};
         df.moveGen.generateMoves(&pos3, &moveList2);
@@ -48,13 +48,13 @@ fn printBoards() !void {
         std.debug.print("!!! Move list too short to generate move !!!\n\n", .{});
     }
 
-    var pos2 = try df.types.Position.fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - e3 0 1");
-    std.debug.print("{short}\n", .{pos2});
+    var pos2 = try df.types.Position.fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b - e6 11 21");
+    std.debug.print("{full}\n", .{pos2});
 
     std.debug.print("\n\n", .{});
 
     var kiwipete = try df.types.Position.fromFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
-    std.debug.print("{short}\n", .{kiwipete});
+    std.debug.print("{full}\n", .{kiwipete});
 
     var kiwipeteMoveList = df.types.MoveList{};
     df.moveGen.generateMoves(&kiwipete, &kiwipeteMoveList);
@@ -64,14 +64,22 @@ fn printBoards() !void {
     std.debug.print("\n\n", .{});
 
     // invalid exposed king
-    //if (df.types.Position.fromFen("2b1q3/4N2p/2k2p2/8/4K1Pr/5P2/8/R3n2q w - - 0 1") == .FenInvalid) {
-    //    std.debug.print("invalid exposed king was shown to be an invalid position\n\n", .{});
-    //} else {
-    //    std.debug.print("!!!!! invalid exposed king was shown to be a valid position !!!!!\n\n", .{});
-    //}
+    var errPosition: ?df.types.Position = df.types.Position.fromFen("2b1q3/4N2p/2k2p2/8/4K1Pr/5P2/8/R3n2q w - - 0 1") catch null;
+    if (errPosition) |_| {
+        std.debug.print("!!!!! invalid exposed king was shown to be a valid position !!!!!\n\n", .{});
+    } else {
+        std.debug.print("invalid exposed king was shown to be an invalid position\n\n", .{});
+    }
+
+    var errPosition2: ?df.types.Position = df.types.Position.fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b - e4 11 21") catch null;
+    if (errPosition2) |_| {
+        std.debug.print("!!!!! invalid en passant was shown to be a valid position !!!!!\n\n", .{});
+    } else {
+        std.debug.print("invalid en passant was shown to be an invalid position\n\n", .{});
+    }
 
     var exposedKing = try df.types.Position.fromFen("2b1q3/4N3/5p1p/2k5/4K1Pr/5P2/8/R3n2q w - - 0 1");
-    std.debug.print("{short}\n", .{exposedKing});
+    std.debug.print("{full}\n", .{exposedKing});
 
     var exposedKingMoveList = df.types.MoveList{};
     df.moveGen.generateMoves(&exposedKing, &exposedKingMoveList);

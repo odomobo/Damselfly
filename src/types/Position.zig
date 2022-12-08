@@ -34,8 +34,8 @@ pub const Position = struct {
     sideToMove: Color,
     enPassant: ?Index,
     canCastle: CanCastle,
-    fiftyMoveCounter: isize, // resets to 0 after pawn move or capture; this is in number of plies
-    gamePly: isize, // game's ply, starting from 0
+    fiftyMoveCounter: usize, // resets to 0 after pawn move or capture; this is in number of plies
+    gamePly: usize, // game's ply, starting from 0
     zobristHash: ZobristHash,
     lastMoveWasReversible: bool,
 
@@ -59,7 +59,11 @@ pub const Position = struct {
 
         var splitFen = std.mem.split(u8, fen, " ");
 
-        var pieces = splitFen.first();
+        var maybePieces = nextEatWhitespace(&splitFen);
+        if (maybePieces == null)
+            return Error.FenInvalid;
+
+        var pieces = maybePieces.?;
         var x: isize = 0;
         var y: isize = 7;
         for (pieces) |c| {
@@ -111,7 +115,7 @@ pub const Position = struct {
         if (bitboards.popCount(ret.getPieceBb(Color.Black, PieceType.King)) != 1)
             return Error.FenInvalid;
 
-        var maybeSideToMove = splitFen.next();
+        var maybeSideToMove = nextEatWhitespace(&splitFen);
         if (maybeSideToMove == null)
             return Error.FenInvalid;
 
@@ -127,14 +131,14 @@ pub const Position = struct {
         if (ret.isOtherKingInCheck())
             return Error.FenInvalid;
 
-        var maybeCastlingAbility = splitFen.next();
+        var maybeCastlingAbility = nextEatWhitespace(&splitFen);
         if (maybeCastlingAbility == null)
             return Error.FenInvalid;
         
         ret.canCastle = try CanCastle.tryFromStr(maybeCastlingAbility.?);
         ret.canCastle.fixCastlingFromPosition(&ret); // this just needs to get called after the pieces are set
 
-        var maybeEpSquare = splitFen.next();
+        var maybeEpSquare = nextEatWhitespace(&splitFen);
         if (maybeEpSquare == null)
             return Error.FenInvalid;
         
@@ -142,30 +146,58 @@ pub const Position = struct {
             ret.enPassant = null;
         } else {
             ret.enPassant = try indexes.tryStrToIndex(maybeEpSquare.?);
+            if (ret.enPassant) |ep| {
+                var good = 
+                    ( ep >= indexes.strToIndex("a3") and ep <= indexes.strToIndex("h3") ) or
+                    ( ep >= indexes.strToIndex("a6") and ep <= indexes.strToIndex("h6") );
+                if (!good)
+                    return Error.FenInvalid;
+
+                // TODO: check more en passant positions, basically if it's not the right turn to move, or if there isn't a pawn in position, then I guess we could just clear it
+            }
         }
 
-        var maybeHalfmoveClock = splitFen.next();
+        var maybeHalfmoveClock = nextEatWhitespace(&splitFen);
         if (maybeHalfmoveClock) |halfmoveClock| {
-            _ = halfmoveClock;
-            // TODO: extract
+            ret.fiftyMoveCounter = try std.fmt.parseInt(usize, halfmoveClock, 10);
         }
 
-        var maybeFullmoveCounter = splitFen.next();
+        var maybeFullmoveCounter = nextEatWhitespace(&splitFen);
         if (maybeFullmoveCounter) |fullmoveCounter| {
-            _ = fullmoveCounter;
-            // TODO extract
+            var fullMoves = try std.fmt.parseInt(usize, fullmoveCounter, 10);
+            // Basically we want to turn 
+            // 1, 1, 2, 2, 3, 3, ...
+            // into
+            // 0, 1, 2, 3, 4, 5, ...
+            ret.gamePly = (fullMoves - 1) * 2;
+            if (ret.sideToMove == .Black)
+                ret.gamePly += 1;
         }
 
         // TODO: should we do this check?
-        var maybeExtra = splitFen.next();
+        var maybeExtra = nextEatWhitespace(&splitFen);
         if (maybeExtra != null)
             return Error.FenInvalid;
 
         ret.calculateInCheck();
-
-        ret.zobristHash = df.tables.zobrist.getZobristHashForPosition(&ret);
-
+        ret.calculateZobristHash();
+        
         return ret;
+    }
+
+    fn nextEatWhitespace(iter: anytype) ?[]const u8 {
+        while (true) {
+            if (iter.next()) |val| {
+                // if a string is all spaces, then we continue on to the next chunk
+                for (val) |c| {
+                    if (c != ' ') {
+                        return val;
+                    }
+                }
+            } else {
+                return null;
+            }
+        }
     }
 
     pub fn makeFromMove(parent: *const Self, move: Move) Self {
@@ -204,12 +236,6 @@ pub const Position = struct {
         // swap side to move only _after_ making the move
         ret.sideToMove = parent.sideToMove.other();
 
-        // this depends on move being made, side-to-move being updated, castling being updated, and en passant square being set
-        // TODO: maybe incremental update?
-        ret.zobristHash = df.tables.zobrist.getZobristHashForPosition(&ret);
-
-        // TODO: calculate repetition number
-
         // if the castling rights have changed, then the move wasn't reversible
         if (!eql(ret.canCastle, parent.canCastle)) {
             ret.lastMoveWasReversible = false;
@@ -219,6 +245,9 @@ pub const Position = struct {
         if (move.capture or move.pieceType == .Pawn)
             ret.fiftyMoveCounter = 0;
 
+        // this depends on move being made, side-to-move being updated, castling being updated, and en passant square being set
+        // TODO: maybe incremental update?
+        ret.calculateZobristHash();
         ret.calculateInCheck();
 
         return ret;
@@ -305,6 +334,10 @@ pub const Position = struct {
         var kingSquare = self.getPieceBb(self.sideToMove, PieceType.King);
         assert(bitboards.popCount(kingSquare) == 1); // this is good to always do, I think? this should never be false, but would be catastrophic if it was
         self.inCheck = self.isSquareAttacked(self.sideToMove, kingSquare);
+    }
+
+    fn calculateZobristHash(self: *Self) void {
+        self.zobristHash = df.tables.zobrist.getZobristHashForPosition(self);
     }
 
     pub fn isOtherKingInCheck(self: *const Self) bool {
@@ -461,9 +494,13 @@ pub const Position = struct {
         return self.occupiedColors[@enumToInt(color)];
     }
 
+    pub fn getMoveNumber(self: *const Self) usize {
+        return @divFloor(self.gamePly, 2) + 1;
+    }
+
     pub fn format(self: *const Self, comptime fmt: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
     {
-        if (comptime std.mem.eql(u8, fmt, "short"))
+        if (comptime std.mem.eql(u8, fmt, "full"))
         {
             var y: isize = 7;
             while(y >= 0) : (y -= 1)
@@ -478,13 +515,53 @@ pub const Position = struct {
             try writer.print("Side to move: {full}\n", .{self.sideToMove});
             if (self.inCheck)
                 try writer.print("In check.\n", .{});
+            try writer.print("Move number: {}\n", .{self.getMoveNumber()});
             try writer.print("Castling rights: {}\n", .{self.canCastle});
             try writer.print("En passant square: {}\n", .{indexes.indexToFormattable(self.enPassant)});
+            try writer.print("50-move-rule counter: {}\n", .{self.fiftyMoveCounter});
             try writer.print("Zobrist Hash: 0x{X:0>16}\n", .{self.zobristHash});
+            try writer.print("FEN: {fen}\n", .{self});
+        } else if (comptime std.mem.eql(u8, fmt, "fen")) {
+            var y: isize = 7;
+            while(y >= 0) : (y -= 1)
+            {
+                var x: isize = 0;
+                var skipped: isize = 0;
+                while(x < 8) : (x += 1)
+                {
+                    var piece = self.getXYPiece(x, y);
+                    if (piece.pieceType == .None) {
+                        skipped += 1;
+                        continue;
+                    }
+                    if (skipped > 0) {
+                        try writer.print("{}", .{skipped});
+                        skipped = 0;
+                    }
+                    try writer.print("{short}", .{piece});
+                }
+                if (skipped > 0) {
+                    try writer.print("{}", .{skipped});
+                    skipped = 0;
+                }
+                if (y > 0)
+                    try writer.print("/", .{});
+            }
+
+            if (self.sideToMove == .White) {
+                try writer.print(" w", .{});
+            } else {
+                try writer.print(" b", .{});
+            }
+
+            try writer.print(" {}", .{self.canCastle});
+            try writer.print(" {}", .{indexes.indexToFormattable(self.enPassant)});
+            try writer.print(" {}", .{self.fiftyMoveCounter});
+            try writer.print(" {}", .{self.getMoveNumber()});
         }
         else 
         {
-            @compileError("format type for Piece must be \"short\" for now...");
+            @compileError("format type for Piece must be \"full\" or \"fen\" for now...");
         }
     }
 

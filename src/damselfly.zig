@@ -34,7 +34,7 @@ pub fn init(alloc: std.mem.Allocator) void {
 
 // allows `zig build test` to work
 test {
-    tables.init(std.testing.allocator); // it's important this is called here before any tests are run
+    init(std.testing.allocator); // it's important this is called here before any tests are run
 
     @import("std").testing.refAllDecls(@This());
 }

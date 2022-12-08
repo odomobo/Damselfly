@@ -1,6 +1,5 @@
 # TODO
 
-* Set halfmove number and 50 move number
 * Material evaluation.
 * Simple piece square tables.
 * Search.
