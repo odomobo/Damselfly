@@ -1,6 +1,5 @@
 # TODO
 
-* Position.tryGetMoveFromMoveStr() and .tryMakeMoveFromMoveStr()
 * Test 50-move-rule counter against different scenarios.
 * Material evaluation.
 * Simple AB Search.

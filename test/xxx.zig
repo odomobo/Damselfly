@@ -12,8 +12,19 @@ pub fn main() !void {
     df.init(gpa.allocator()); // important that this is run first
     df.compileOptions.print();
 
+    try makeMovesFromStr();
     //try printZobristKeys();
-    try printBoards();
+    //try printBoards();
+}
+
+fn makeMovesFromStr() !void {
+    var position = try df.types.Position.fromFen(" rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    std.debug.print("{full}\n", .{position});
+    position = position.tryMakeMoveFromMoveStr("e2e4").?;
+    position = position.tryMakeMoveFromMoveStr("e7e5").?;
+    position = position.tryMakeMoveFromMoveStr("g1f3").?;
+    position = position.tryMakeMoveFromMoveStr("b8c6").?;
+    std.debug.print("{full}\n", .{position});
 }
 
 fn printZobristKeys() !void {

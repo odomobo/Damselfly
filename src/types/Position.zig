@@ -18,6 +18,7 @@ const bitboards = df.bitboards;
 const movements = df.tables.movements;
 const Index = df.types.Index;
 const ZobristHash = df.types.ZobristHash;
+const MoveList = df.types.MoveList;
 
 pub const Position = struct {
     const Self = @This();
@@ -496,6 +497,30 @@ pub const Position = struct {
 
     pub fn getMoveNumber(self: *const Self) usize {
         return @divFloor(self.gamePly, 2) + 1;
+    }
+
+    pub fn tryGetMoveFromMoveStr(self: *const Self, moveStr: []const u8) ?Move {
+        var moves = MoveList{};
+        df.moveGen.generateMoves(self, &moves);
+
+        var buf: [128]u8 = undefined;
+        for (moves.getItems()) |move| {
+            var stream = std.io.fixedBufferStream(&buf);
+            stream.writer().print("{}", .{move}) catch @panic("tryGetMoveFromMoveStr"); // this shouldn't ever fail...
+            if (std.mem.eql(u8, stream.getWritten(), moveStr)) {
+                return move;
+            }
+        }
+
+        return null;
+    }
+
+    pub fn tryMakeMoveFromMoveStr(self: *const Self, moveStr: []const u8) ?Position {
+        var move = tryGetMoveFromMoveStr(self, moveStr);
+        if (move == null)
+            return null;
+        
+        return self.makeFromMove(move.?);
     }
 
     pub fn format(self: *const Self, comptime fmt: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void
